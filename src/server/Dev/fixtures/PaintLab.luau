@@ -168,6 +168,10 @@ function PaintLab.build(): (Model, Model)
 	stagingModel.Name = "ColorClashStaging"
 	stagingModel:SetAttribute("IsFixture", true)
 	part(stagingModel, "staging_floor", Vector3.new(40, 2, 40), CFrame.new(0, Y - 1, 200), Color3.fromRGB(200, 205, 215))
+	local stagingSpawn = part(stagingModel, "StagingSpawn", Vector3.new(4, 0.2, 4), CFrame.new(0, Y + 0.1, 200))
+	stagingSpawn.Transparency = 1
+	stagingSpawn.CanCollide = false
+	stagingSpawn.CanQuery = false
 	return model, stagingModel
 end
 

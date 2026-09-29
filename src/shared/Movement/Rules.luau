@@ -4,7 +4,9 @@
 
 local Rules = {}
 
-export type Ground = "Own" | "Neutral" | "Enemy" | "None" | "Base"
+-- Own/Neutral/Enemy: a legal paint cell. Base: own protected-base floor. Inert: walkable but not paintable (grating,
+-- decor floors) — it is not neutral turf, so no refill and no glide. None: no floor found (airborne).
+export type Ground = "Own" | "Neutral" | "Enemy" | "None" | "Base" | "Inert"
 
 export type MoveState = "Standing" | "Airborne" | "Gliding" | "Climbing" | "WeaponSecondary" | "LaunchChannel" | "Launching" | "Eliminated"
 
@@ -40,7 +42,7 @@ function Rules.speed(cfg: any, state: MoveState, ground: Ground, act: Activity):
 	if act.glideHeld and not act.firing then
 		if ground == "Own" or ground == "Base" then
 			return cfg.GlideSpeed
-		elseif ground == "Neutral" then
+		elseif ground == "Neutral" or ground == "Inert" then
 			return cfg.NeutralCrouchSpeed
 		end
 	end
@@ -76,6 +78,9 @@ function Rules.refill(tankCfg: any, state: MoveState, ground: Ground, act: Activ
 	end
 	if ground == "Enemy" then
 		return 0, "enemy"
+	end
+	if ground == "Inert" then
+		return 0, "inert"
 	end
 	if ground == "Own" or ground == "Base" then
 		if Rules.isGliding(ground, act) then

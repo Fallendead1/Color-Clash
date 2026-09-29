@@ -22,6 +22,7 @@ export type Context = {
 	expect: (value: any) -> Expectation,
 	require: (path: string) -> any,
 	env: string,
+	services: any?, -- engine specs: the running service registry (Studio runner only)
 }
 
 export type Result = {
@@ -137,12 +138,14 @@ function TestKit.runSpec(
 	spec: (Context) -> (),
 	requireShared: (string) -> any,
 	env: string,
-	clock: () -> number
+	clock: () -> number,
+	services: any?
 ): { Result }
 	local results: { Result } = {}
 	local prefix: { string } = { specName }
 	local ctx: Context = {} :: any
 	ctx.env = env
+	ctx.services = services
 	ctx.require = requireShared
 	ctx.expect = function(v)
 		return makeExpect(v, false)
