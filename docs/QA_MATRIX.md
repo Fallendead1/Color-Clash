@@ -24,10 +24,13 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | FLOW-01 | Engine | PASS | Boot.spec staging |
 | FLOW-02..04 | Pure | PASS (pure) | RoundMachine.spec; multi-client BLOCKED |
 | FLOW-05 | Pure + Engine | PASS (pure) / lifecycle engine PASS | Teams.form matrix; RoundLifecycle.spec (solo practice override) |
-| FLOW-06 | Pure + Engine | PASS (pure); engine raw-count results PASS (solo) | RoundLifecycle.spec results = raw totals |
-| FLOW-07 | — | NOT RUN | Phase 04 |
+| FLOW-06 | Pure + Engine + 2 real clients | PASS | raw-count results; both clients frozen hash == server |
+| FLOW-07 | Engine | PASS | late impact excluded; nothing in flight after the round (all-clients agreement via frozen hashes) |
 | FLOW-08 | Pure | PASS (pure) | exact tie / near tie |
-| FLOW-09..12 | Pure | PASS (pure) | engine/multi-client pending |
+| FLOW-09 | Pure + 3 real clients | PASS | backfill to smaller side, synced first, ult 0 |
+| FLOW-10 | Pure + 3 real clients | PASS | <= 60 s left: stays in staging |
+| FLOW-11 | Pure | PASS (pure) | real replacement-in-grace NOT RUN |
+| FLOW-12 | Pure + real clients | PASS | real kick -> pause (clock frozen) -> NoContest |
 | FLOW-13, FLOW-14 | — | NOT RUN | |
 
 ## 18.2 Painting and movement
@@ -63,7 +66,17 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 
 | ID | Level | Result | Evidence |
 |---|---|---|---|
-| COMBAT-01..11 | — | NOT RUN | Phase 04/05 |
+| COMBAT-01 | Engine | PASS | enemy/friendly targets, exact cost |
+| COMBAT-02 | Engine | PASS | replay: one cost, one hit |
+| COMBAT-03 | Engine | PASS | thin cover blocks; normalized rig has 0 accessories |
+| COMBAT-04 | Engine | PASS | empty tank |
+| COMBAT-05 | — | NOT RUN | next multi-client session |
+| COMBAT-06 | Pure + real clients (single attacker) | PASS (pure) / assist with real attackers NOT RUN | |
+| COMBAT-07 | — | NOT RUN | next multi-client session |
+| COMBAT-08 | Engine + Client (real mouse) | PASS | base both directions |
+| COMBAT-09 | Engine | PASS | shield removed by attack |
+| COMBAT-10 | Pure + Engine | PASS | OOB elimination; recent-hit credit (pure) |
+| COMBAT-11 | — | NOT RUN | Phase 05 |
 | WEAPON-01, 02, 04, 07 | Pure | PASS (pure formulas) | Combat.spec; engine pending |
 | WEAPON-03, 05, 06, 08, 09 | — | NOT RUN | |
 | ABIL-01 (formula), ABIL-04 | Pure | PASS (pure) | |
@@ -89,7 +102,8 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | NET-01 | Pure + Engine + Client | PASS | late join while painting converges (hash ack) |
 | NET-02 | Pure + Engine + Client | PASS | gap → exactly one bounded resync → exact state |
 | NET-03 | Engine + Client (single client, simulated disconnect by reset) | PASS (simulated) | real disconnect during snapshot needs multi-client: BLOCKED |
-| NET-04..08 | — | NOT RUN | |
+| NET-04 | 2 real clients | PASS (2 clients) / 8 clients BLOCKED (memory) | same frozen state & results |
+| NET-05..08 | — | NOT RUN | |
 | SEC-01 | Build + Engine | PASS | |
 | SEC-05..08 | Pure | PASS (pure) | engine adversarial suite Phase 08 |
 | SEC-02..04, 09, 10 | — | NOT RUN | |

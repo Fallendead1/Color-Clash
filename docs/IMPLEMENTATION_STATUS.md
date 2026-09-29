@@ -9,7 +9,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | 01 | Foundations, state and test harness | PASS_CODE | `docs/qa/phase-01.md` (unit 53/53 Lune+Studio, engine 15/15, client 8/8) | — |
 | 02 | Prove painting before adding content | PASS_CODE (desktop) | `docs/qa/phase-02.md` | Mobile renderer budget BLOCKED (no device); 2-client paint test BLOCKED (solo Play only) |
 | 03 | Movement, camera, tank, survivability | PASS_CODE (desktop, keyboard/mouse) | `docs/qa/phase-03.md` | UI-02 multi-touch BLOCKED; MOVE-06/08 in Phase 05 |
-| 04 | First playable vertical slice | NOT STARTED | — | Multi-client runtime route unverified (see Capabilities) |
+| 04 | First playable vertical slice | PASS_CODE (8-client item BLOCKED) | `docs/qa/phase-04.md` | 8-client test needs more free RAM (15.9 GB total, 0.8 GB free) |
 | 05 | All seven main weapons | NOT STARTED | — | — |
 | 06 | Core tactical tools | NOT STARTED | — | — |
 | 07 | Player-facing loop | NOT STARTED | — | — |
@@ -43,7 +43,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | Studio Play runtime (1 client + server) | Available | Canary: `[Color Clash] Server started` / `Client started` in console during MCP-started Play (ENV-03) |
 | Server/Client datamodel Luau execution during Play | Available | MCP `execute_luau` with Server/Client |
 | Keyboard/mouse input automation (client) | Available (untested on gameplay yet) | MCP `user_keyboard_input` / `user_mouse_input` |
-| Multi-client local server (2–8 clients) | **Not available through the MCP**; `start_stop_play` starts solo Play only | Dependent tests use the server-side simulated-client harness where the GDD allows, and are otherwise marked BLOCKED |
+| Multi-client local server (2–3 clients verified) | **Available when the user starts Test > Local Server**; each server/client window is reachable through the MCP. OS mouse/key injection does not reach separate client windows (semantic input used there). 8 clients: BLOCKED by memory | Phase 04 multi specs |
 | Touch input automation / real devices | Not available | Device tests BLOCKED/NOT RUN |
 | Gamepad input | Partially (key codes such as ButtonA exist in the MCP input tool; untested) | — |
 | EditableImage runtime API | **Blocked** in this experience: "EditableImage is not accessible. Go to the Security Tab in Experience Settings to enable this API." | D-004 native renderer |
