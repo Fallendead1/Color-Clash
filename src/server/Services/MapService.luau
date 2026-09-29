@@ -32,6 +32,8 @@ local function ensureFolder(parent: Instance, name: string): Folder
 	return f :: Folder
 end
 
+local stressTemplate: Model? = nil
+
 local function buildFixture()
 	local dev = DevGate.devFolder()
 	if not dev or fixtureTemplate then
@@ -45,6 +47,18 @@ local function buildFixture()
 	else
 		staging:Destroy()
 	end
+end
+
+-- Dev only: DevGate "FixtureMap" = "stress_lab" selects the open budget-sized fixture (balance/coverage trials).
+local function stressFixture(): Model?
+	local dev = DevGate.devFolder()
+	if not dev then
+		return nil
+	end
+	if not stressTemplate then
+		stressTemplate = require((dev :: any).fixtures.StressLab).build()
+	end
+	return stressTemplate
 end
 
 function MapService:Init(ctx)
@@ -75,8 +89,10 @@ function MapService.rotation(): { Entry }
 	end
 	if #list == 0 and DevGate.enabled() then
 		buildFixture()
-		if fixtureTemplate then
-			table.insert(list, { id = fixtureTemplate:GetAttribute("MapId"), template = fixtureTemplate, isFixture = true })
+		local choice = DevGate.get("FixtureMap", "paint_lab")
+		local template = if choice == "stress_lab" then stressFixture() else fixtureTemplate
+		if template then
+			table.insert(list, { id = template:GetAttribute("MapId"), template = template, isFixture = true })
 		end
 	end
 	return list

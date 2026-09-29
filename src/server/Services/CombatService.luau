@@ -1,13 +1,15 @@
--- Accepted actions, projectile simulation, hits, damage and attribution (GDD 06, 07, 11.3 CombatService, 11.4).
+-- Accepted actions, projectile simulation, hits, damage and attribution (GDD 06, 07, 08, 11.3 CombatService, 11.4).
 --
--- Action protocol (reliable "Action" remote, client -> server), one message per legal shot for held weapons:
---   { m = matchId, l = lifeId, s = sequence, a = "Fire", t = client estimate of server time, o = muzzle, d = aim }
--- The client never sends damage, targets, charge durations or paint amounts. Validation is cheapest-first:
--- shape/types/finite -> round/life/sequence -> timing -> muzzle plausibility -> state -> cadence -> atomic paint cost.
--- Only rejections are answered (ActionResult); accepted shots are visible through paint/resource/hit messages.
+-- Action protocol (reliable "Action" remote, client -> server). Every message is sequenced per life:
+--   { m = matchId, l = lifeId, s = sequence, a = action, t = client estimate of server time, o = muzzle, d = aim }
+--   actions: Fire | SecStart | SecStop | Dash | ChargeStart | ChargeRelease | ChargeCancel | Gadget | Ultimate
+-- Held weapons send one Fire per legal attack (never per frame). Continuous actions (roll/push/charge) use
+-- start/stop messages; the server measures elapsed time and movement itself. The client never sends damage,
+-- targets, charge durations or paint amounts.
 --
--- Projectiles are server-simulated with swept collision (segment raycast vs world + segment/capsule vs targets),
--- never Touched. One damage result per victim per attack id. Impacts count only strictly before RoundEndTime.
+-- Validation is cheapest-first: shape/types/finite -> match/life/sequence -> timestamp window -> muzzle plausibility
+-- -> state (climbing, base) -> family rules (cadence, windups, cooldowns) -> atomic paint cost.
+-- Weapon families live in ServerScriptService.Server.Combat.*; this module is the shared core.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -15,17 +17,18 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
-local Weapons = require(Shared.Config.Weapons)
 local Validate = require(Shared.Protocol.Validate)
 local Ballistics = require(Shared.Combat.Ballistics)
 
 local MapLoader = require(script.Parent.Parent.Map.MapLoader)
+local CombatFolder = script.Parent.Parent.Combat
 
 local CombatService = {}
 
 local CB = GameConfig.Combat
 local PROJECTILE_RADIUS = 0.15
 local SUBSTEP = 1 / 60
+local POSE_SECONDS = 1.0
 
 local net, diagnostics, character, loadout, paint, round, team
 local paused = false
@@ -37,16 +40,31 @@ local attackCounter = 0
 local players: { [Player]: any } = {}
 local targets: { any } = {}
 local worldParams = { [1] = RaycastParams.new(), [2] = RaycastParams.new() }
-local downParams = RaycastParams.new()
+local plainParams = RaycastParams.new()
+local families: { [string]: any } = {}
+local abilities = nil -- AbilityService (gadgets/ultimates/launch) wired in Init when present
+local poses: { [Player]: { { t: number, p: Vector3 } } } = {}
 
-local ALLOWED_FIRE = { m = true, l = true, s = true, a = true, t = true, o = true, d = true }
-local ACTIONS = { Fire = true }
+local ALLOWED = { m = true, l = true, s = true, a = true, t = true, o = true, d = true }
+local ACTIONS = {
+	Fire = true,
+	SecStart = true,
+	SecStop = true,
+	Dash = true,
+	ChargeStart = true,
+	ChargeRelease = true,
+	ChargeCancel = true,
+	Gadget = true,
+	Ultimate = true,
+}
+-- Actions that attack: rejected from inside a protected base and they remove the spawn shield.
+local OFFENSIVE = { Fire = true, ChargeRelease = true, Gadget = true, Ultimate = true }
 
 ---------------------------------------------------------------------------------------------------------------
 -- Per-player combat state
 ---------------------------------------------------------------------------------------------------------------
 
-local function state(player: Player)
+function CombatService.state(player: Player)
 	local s = players[player]
 	if not s then
 		s = {
@@ -55,14 +73,22 @@ local function state(player: Player)
 			nextReady = 0,
 			firingUntil = 0,
 			charging = false,
+			chargeStart = 0,
 			rolling = false,
 			pushing = false,
+			trailLast = nil,
+			trailHits = {},
+			stationaryPainted = false,
+			dashReady = 0,
 			lastDryCue = 0,
+			muzzleToggle = false,
+			pending = {}, -- windup tasks (cancelled by life id checks)
 		}
 		players[player] = s
 	end
 	return s
 end
+local state = CombatService.state
 
 function CombatService.activity(player: Player)
 	local s = players[player]
@@ -77,30 +103,69 @@ function CombatService.activity(player: Player)
 	}
 end
 
+local function clearContinuous(s)
+	s.charging = false
+	s.rolling = false
+	s.pushing = false
+	s.trailLast = nil
+	s.stationaryPainted = false
+	table.clear(s.trailHits)
+end
+
 function CombatService.onLifeStarted(player: Player, life)
 	local s = state(player)
 	s.life = life.lifeId
 	s.lastSeq = -1
 	s.nextReady = 0
 	s.firingUntil = 0
-	s.charging, s.rolling, s.pushing = false, false, false
+	s.dashReady = 0
+	clearContinuous(s)
+	poses[player] = {}
+	if abilities then
+		abilities.onLifeStarted(player, life)
+	end
 end
 
-function CombatService.onDamaged(_player: Player) end
+function CombatService.onDamaged(player: Player)
+	if abilities then
+		abilities.onDamaged(player)
+	end
+end
 
 function CombatService.onEliminated(player: Player)
 	local s = players[player]
 	if s then
-		s.charging, s.rolling, s.pushing = false, false, false
+		clearContinuous(s)
 		s.firingUntil = 0
+	end
+	if abilities then
+		abilities.onEliminated(player)
 	end
 end
 
+-- Glide or climb cancels stored charge and continuous weapon actions (GDD 07.3).
 function CombatService.onGlideOrClimb(player: Player)
 	local s = players[player]
 	if s then
-		s.charging = false -- glide/climb cancels stored charge (GDD 07.3)
+		if s.charging then
+			diagnostics.count("Charge.cancelledByMovement")
+		end
+		s.charging = false
 	end
+end
+
+function CombatService.stopContinuous(player: Player, what: string)
+	local s = players[player]
+	if not s then
+		return
+	end
+	if what == "roll" then
+		s.rolling = false
+	elseif what == "push" then
+		s.pushing = false
+	end
+	s.trailLast = nil
+	net.fire(player, "ActionResult", { k = "Stop", what = what, paint = loadout.paint(player) })
 end
 
 ---------------------------------------------------------------------------------------------------------------
@@ -121,12 +186,20 @@ local function rebuildParams()
 		worldParams[teamId].FilterType = Enum.RaycastFilterType.Include
 		worldParams[teamId].FilterDescendantsInstances = list
 	end
-	downParams.FilterType = Enum.RaycastFilterType.Include
-	downParams.FilterDescendantsInstances = matchDesc.raycastInclude
+	plainParams.FilterType = Enum.RaycastFilterType.Include
+	plainParams.FilterDescendantsInstances = matchDesc.raycastInclude
 end
 CombatService.rebuildParams = rebuildParams
 
-function CombatService.prepareMatch(desc, _matchId: number)
+function CombatService.worldParamsFor(teamId: number): RaycastParams
+	return worldParams[teamId] or plainParams
+end
+
+function CombatService.plainParams(): RaycastParams
+	return plainParams
+end
+
+function CombatService.prepareMatch(desc, matchId: number)
 	matchDesc = desc
 	table.clear(projectiles)
 	table.clear(attackHits)
@@ -152,10 +225,20 @@ function CombatService.prepareMatch(desc, _matchId: number)
 			end
 		end
 	end
+	if abilities then
+		abilities.prepareMatch(desc, matchId)
+	end
+end
+
+function CombatService.matchDesc()
+	return matchDesc
 end
 
 function CombatService.setPaused(value: boolean)
 	paused = value
+	if abilities then
+		abilities.setPaused(value)
+	end
 end
 
 function CombatService.isPaused(): boolean
@@ -167,11 +250,15 @@ function CombatService.endRound()
 	local cancelled = #projectiles
 	table.clear(projectiles)
 	for _, s in players do
-		s.charging, s.rolling, s.pushing = false, false, false
+		clearContinuous(s)
 		s.firingUntil = 0
+		table.clear(s.pending)
 	end
 	if cancelled > 0 then
 		diagnostics.count("Projectile.cancelledAtEnd", cancelled)
+	end
+	if abilities then
+		abilities.endRound()
 	end
 end
 
@@ -180,8 +267,12 @@ function CombatService.reset()
 	table.clear(attackHits)
 	table.clear(attackExpiry)
 	table.clear(targets)
+	table.clear(poses)
 	matchDesc = nil
 	paused = false
+	if abilities then
+		abilities.reset()
+	end
 end
 
 -- Test/dev: set a practice target's team ("A", "B" or "Any").
@@ -204,7 +295,7 @@ end
 -- Damage (single path, per-attack dedupe)
 ---------------------------------------------------------------------------------------------------------------
 
-local function newAttackId(player: Player?): string
+function CombatService.newAttackId(player: Player?): string
 	attackCounter += 1
 	return (if player then tostring(player.UserId) else "env") .. ":" .. attackCounter
 end
@@ -222,9 +313,13 @@ local function markHit(attackId: string, key: any): boolean
 	set[key] = true
 	return true
 end
+CombatService.markHit = markHit
 
 -- Applies `amount` from `owner` to a victim record once per attack id. Returns the outcome string.
-local function damageVictim(victim, amount: number, owner: Player?, attackId: string, weaponId: string): string
+function CombatService.damageVictim(victim, amount: number, owner: Player?, attackId: string, weaponId: string): string
+	if amount <= 0 then
+		return "none"
+	end
 	if not markHit(attackId, victim.key) then
 		diagnostics.count("Damage.duplicateSuppressed")
 		return "duplicate"
@@ -232,6 +327,8 @@ local function damageVictim(victim, amount: number, owner: Player?, attackId: st
 	local outcome
 	if victim.kind == "player" then
 		outcome = character.applyDamage(victim.player, amount, owner, weaponId)
+	elseif victim.kind == "screen" then
+		outcome = if abilities then abilities.damageScreen(victim.screen, amount, owner) else "none"
 	else
 		if not victim.target.alive then
 			return "dead"
@@ -245,7 +342,7 @@ local function damageVictim(victim, amount: number, owner: Player?, attackId: st
 		end
 		outcome = "applied"
 	end
-	if owner and owner.Parent == Players then
+	if owner and owner.Parent == Players and victim.kind ~= "screen" then
 		net.fire(owner, "DamageResult", {
 			k = if outcome == "shielded" then "Shielded" else "Hit",
 			v = if victim.kind == "player" then victim.player.UserId else victim.target.part.Name,
@@ -256,18 +353,39 @@ local function damageVictim(victim, amount: number, owner: Player?, attackId: st
 	end
 	return outcome
 end
-CombatService.damageVictim = damageVictim
+local damageVictim = CombatService.damageVictim
 
--- Candidate victims for an attacker of `ownerTeam`: living enemy match players outside their protected base, and
--- practice targets that are not on the attacker's team.
-local function victimsFor(ownerTeam: number): { any }
+-- Feet position of a victim at `rewindSeconds` ago (players only; capped history; GDD 06.2).
+local function feetAt(p: Player, life, rewindSeconds: number): Vector3
+	local root = life.root
+	local feetOffset = life.humanoid.HipHeight + root.Size.Y / 2
+	if rewindSeconds <= 0 then
+		return root.Position - Vector3.new(0, feetOffset, 0)
+	end
+	local hist = poses[p]
+	if not hist or #hist == 0 then
+		return root.Position - Vector3.new(0, feetOffset, 0)
+	end
+	local want = os.clock() - rewindSeconds
+	local best = hist[#hist]
+	for k = #hist, 1, -1 do
+		best = hist[k]
+		if hist[k].t <= want then
+			break
+		end
+	end
+	return best.p - Vector3.new(0, feetOffset, 0)
+end
+
+-- Candidate victims for an attacker of `ownerTeam`: living enemy match players, practice targets not on the attacker's
+-- team. `rewind` (seconds, capped by the caller) is used by the precision hitscan only.
+function CombatService.victimsFor(ownerTeam: number, rewind: number?): { any }
 	local list = {}
 	for _, p in Players:GetPlayers() do
 		local life = character.life(p)
 		if life and life.alive and life.inMatch and life.team ~= ownerTeam and life.root and life.humanoid then
-			local root = life.root
-			local feetY = root.Position.Y - life.humanoid.HipHeight - root.Size.Y / 2
-			table.insert(list, { kind = "player", player = p, key = p, feet = Vector3.new(root.Position.X, feetY, root.Position.Z), team = life.team })
+			local feet = feetAt(p, life, rewind or 0)
+			table.insert(list, { kind = "player", player = p, key = p, feet = feet, team = life.team })
 		end
 	end
 	for _, tg in targets do
@@ -277,13 +395,13 @@ local function victimsFor(ownerTeam: number): { any }
 	end
 	return list
 end
-CombatService.victimsFor = victimsFor
+local victimsFor = CombatService.victimsFor
 
 ---------------------------------------------------------------------------------------------------------------
--- Protected-base boundaries: shots never cross a base boundary in either direction (GDD 06.4)
+-- Protected-base boundaries and line of sight
 ---------------------------------------------------------------------------------------------------------------
 
-local function inAnyBase(p: Vector3): number?
+function CombatService.inAnyBase(p: Vector3): number?
 	if not matchDesc then
 		return nil
 	end
@@ -294,9 +412,10 @@ local function inAnyBase(p: Vector3): number?
 	end
 	return nil
 end
+local inAnyBase = CombatService.inAnyBase
 
 -- Returns the fraction along [a,b] where the segment first crosses a base boundary, or nil.
-local function baseCrossing(a: Vector3, b: Vector3): number?
+function CombatService.baseCrossing(a: Vector3, b: Vector3): number?
 	local sa = inAnyBase(a)
 	local sb = inAnyBase(b)
 	if sa == sb then
@@ -313,26 +432,58 @@ local function baseCrossing(a: Vector3, b: Vector3): number?
 	end
 	return lo
 end
+local baseCrossing = CombatService.baseCrossing
 
----------------------------------------------------------------------------------------------------------------
--- Projectiles
----------------------------------------------------------------------------------------------------------------
-
-local function paintImpact(pos: Vector3, normal: Vector3, radius: number, teamId: number, owner: Player?)
-	paint.paintSphere(pos, radius, teamId, { origin = pos + normal * 0.3, player = owner, creditable = true })
+-- Clear line from `from` to `to` for an attacker of `teamId`: no world geometry, no enemy Paint Screen, no base
+-- boundary in between (blasts, fans, roll contact and splash all use this; GDD 06.1, 06.4, 08.1).
+function CombatService.lineOfSight(from: Vector3, to: Vector3, teamId: number): boolean
+	local dir = to - from
+	if dir.Magnitude < 1e-3 then
+		return true
+	end
+	if baseCrossing(from, to) then
+		return false
+	end
+	local hit = Workspace:Raycast(from, dir, worldParams[teamId] or plainParams)
+	return hit == nil
 end
+
+function CombatService.victimCenter(v): Vector3
+	return v.feet + Vector3.new(0, CB.CapsuleHeight / 2, 0)
+end
+
+---------------------------------------------------------------------------------------------------------------
+-- Paint helpers
+---------------------------------------------------------------------------------------------------------------
+
+function CombatService.paintImpact(pos: Vector3, normal: Vector3, radius: number, teamId: number, owner: Player?, creditable: boolean?)
+	paint.paintSphere(pos, radius, teamId, { origin = pos + normal * 0.3, player = owner, creditable = creditable ~= false })
+end
+local paintImpact = CombatService.paintImpact
 
 -- A drip paints only the first visible floor directly below (never through a roof; GDD 07.1, 07.3).
-local function drip(pos: Vector3, radius: number, teamId: number, owner: Player?)
-	local hit = Workspace:Raycast(pos, Vector3.new(0, -CB.DripMaxDepth, 0), downParams)
+function CombatService.drip(pos: Vector3, radius: number, teamId: number, owner: Player?, creditable: boolean?)
+	local hit = Workspace:Raycast(pos, Vector3.new(0, -CB.DripMaxDepth, 0), plainParams)
 	if hit and hit.Normal.Y > 0.5 then
-		paint.paintSphere(hit.Position, radius, teamId, { origin = hit.Position + Vector3.new(0, 0.3, 0), player = owner, creditable = true, minNormalY = 0.5 })
+		paint.paintSphere(hit.Position, radius, teamId, {
+			origin = hit.Position + Vector3.new(0, 0.3, 0),
+			player = owner,
+			creditable = creditable ~= false,
+			minNormalY = 0.5,
+		})
 	end
 end
+local drip = CombatService.drip
 
+---------------------------------------------------------------------------------------------------------------
+-- Projectiles (swept; never Touched)
+---------------------------------------------------------------------------------------------------------------
+
+-- spec: owner, team, attackId, weapon, origin, velocity, gravity, range, damage?, paintRadius?, dripRadius?,
+--       dripSpacing?, onImpact?(p, kind, worldHit, victim), onExpire?(p), ignoreVictims?, radius?
 function CombatService.spawnProjectile(spec)
 	if #projectiles >= CB.MaxActiveProjectiles then
-		-- the cap is a safety net: log the overload; the shot's cost was already charged, so this is a test failure
+		-- a safety net only: reaching it in legal play is a failed test (GDD 14.3)
 		diagnostics.event("ProjectileCapReached", { active = #projectiles })
 		return nil
 	end
@@ -351,21 +502,26 @@ function CombatService.spawnProjectile(spec)
 		dripRadius = spec.dripRadius,
 		dripSpacing = spec.dripSpacing,
 		nextDrip = spec.dripSpacing,
-		onImpact = spec.onImpact, -- optional custom impact (blasters/lobbers)
+		onImpact = spec.onImpact,
+		onExpire = spec.onExpire,
+		ignoreVictims = spec.ignoreVictims,
+		radius = spec.radius or PROJECTILE_RADIUS,
+		lifetime = spec.lifetime or math.huge,
+		age = 0,
 	}
 	table.insert(projectiles, p)
 	return p
 end
 
--- Advances one projectile by dt. Returns true when it is finished.
 local function stepProjectile(p, dt: number): boolean
+	p.age += dt
 	local nextPos, nextVel = Ballistics.step(vector.create(p.pos.X, p.pos.Y, p.pos.Z), vector.create(p.vel.X, p.vel.Y, p.vel.Z), p.gravity, dt)
 	local a = p.pos
 	local b = Vector3.new(nextPos.X, nextPos.Y, nextPos.Z)
 	local seg = b - a
 	local segLen = seg.Magnitude
 	local remaining = p.range - p.traveled
-	local expire = false
+	local expire = p.age >= p.lifetime
 	if segLen > remaining then
 		b = a + seg.Unit * remaining
 		seg = b - a
@@ -373,16 +529,18 @@ local function stepProjectile(p, dt: number): boolean
 		expire = true
 	end
 	if segLen < 1e-4 then
+		if p.onExpire and round.acceptsImpactAt(Workspace:GetServerTimeNow()) then
+			p.onExpire(p)
+		end
 		return true
 	end
-	-- earliest of: base boundary, world hit, victim hit
 	local tBase = baseCrossing(a, b)
-	local worldHit = Workspace:Raycast(a, seg, worldParams[p.team] or worldParams[1])
+	local worldHit = Workspace:Raycast(a, seg, worldParams[p.team] or plainParams)
 	local tWorld = if worldHit then (worldHit.Position - a).Magnitude / segLen else nil
 	local bestVictim, tVictim = nil, nil
-	if p.damage and p.damage > 0 then
+	if not p.ignoreVictims then
 		for _, v in victimsFor(p.team) do
-			local tv = Ballistics.sweepCapsule(vector.create(a.X, a.Y, a.Z), vector.create(b.X, b.Y, b.Z), PROJECTILE_RADIUS, vector.create(v.feet.X, v.feet.Y, v.feet.Z), CB.CapsuleHeight, CB.CapsuleRadius)
+			local tv = Ballistics.sweepCapsule(vector.create(a.X, a.Y, a.Z), vector.create(b.X, b.Y, b.Z), p.radius, vector.create(v.feet.X, v.feet.Y, v.feet.Z), CB.CapsuleHeight, CB.CapsuleRadius)
 			if tv and (tVictim == nil or tv < tVictim) then
 				bestVictim, tVictim = v, tv
 			end
@@ -399,7 +557,6 @@ local function stepProjectile(p, dt: number): boolean
 	if tVictim and tVictim <= tEnd then
 		tEnd, kind = tVictim, "victim"
 	end
-	-- trail drips along the travelled part of the segment (spacing tied to the footprint, so low FPS leaves no gaps)
 	if p.dripSpacing then
 		local travelledHere = segLen * tEnd
 		while p.nextDrip <= p.traveled + travelledHere do
@@ -412,7 +569,13 @@ local function stepProjectile(p, dt: number): boolean
 	p.pos = a + seg * tEnd
 	p.vel = Vector3.new(nextVel.X, nextVel.Y, nextVel.Z)
 	if kind == nil then
-		return expire
+		if expire then
+			if p.onExpire and round.acceptsImpactAt(Workspace:GetServerTimeNow()) then
+				p.onExpire(p)
+			end
+			return true
+		end
+		return false
 	end
 	-- impacts only count strictly before the authoritative deadline (GDD 03.4)
 	if not round.acceptsImpactAt(Workspace:GetServerTimeNow()) then
@@ -424,12 +587,10 @@ local function stepProjectile(p, dt: number): boolean
 		return true
 	end
 	if p.onImpact then
-		p.onImpact(p, kind, if kind == "world" then worldHit else nil, bestVictim)
-		return true
+		return p.onImpact(p, kind, if kind == "world" then worldHit else nil, bestVictim) ~= false
 	end
 	if kind == "victim" then
 		damageVictim(bestVictim, p.damage, p.owner, p.attackId, p.weapon)
-		-- drips under a character impact may paint the supporting floor within 6 studs
 		drip(p.pos, p.paintRadius, p.team, p.owner)
 	elseif kind == "world" then
 		paintImpact(worldHit.Position, worldHit.Normal, p.paintRadius, p.team, p.owner)
@@ -458,6 +619,24 @@ local function stepAll(dt: number)
 	diagnostics.time("combat.projectiles", (os.clock() - t0) * 1000)
 end
 
+local function samplePoses()
+	local now = os.clock()
+	for _, p in Players:GetPlayers() do
+		local life = character.life(p)
+		if life and life.alive and life.root then
+			local hist = poses[p]
+			if not hist then
+				hist = {}
+				poses[p] = hist
+			end
+			table.insert(hist, { t = now, p = life.root.Position })
+			while #hist > 0 and now - hist[1].t > POSE_SECONDS do
+				table.remove(hist, 1)
+			end
+		end
+	end
+end
+
 local function tickTargets()
 	local now = os.clock()
 	for _, tg in targets do
@@ -478,18 +657,55 @@ local function tickTargets()
 end
 
 ---------------------------------------------------------------------------------------------------------------
--- Action validation
+-- Action validation and dispatch
 ---------------------------------------------------------------------------------------------------------------
 
-local function reject(player: Player, payload: any, reason: string)
+function CombatService.reject(player: Player, payload: any, reason: string)
 	diagnostics.count("ShotRejected." .. reason)
 	local s = if type(payload) == "table" and Validate.integer(payload.s, 0, 1e9) then payload.s else nil
-	net.fire(player, "ActionResult", { k = "Action", ok = false, s = s, reason = reason, paint = loadout.paint(player) })
+	net.fire(player, "ActionResult", { k = "Action", ok = false, s = s, a = if type(payload) == "table" then payload.a else nil, reason = reason, paint = loadout.paint(player) })
 end
+local reject = CombatService.reject
 
 -- Estimated legal muzzle from the server's view of the character (lagged by latency; tolerance covers it).
 local function muzzleEstimate(life): Vector3
 	return life.root.Position + Vector3.new(0, 1.1, 0)
+end
+
+-- Shared bookkeeping for an accepted attack.
+function CombatService.markOffense(player: Player, s)
+	s.firingUntil = os.clock() + 0.25
+	character.onOffensiveAction(player)
+end
+
+-- Cadence then atomic cost. Returns true when accepted (state updated); otherwise rejects and returns false.
+function CombatService.gateAndSpend(player: Player, payload, s, cadence: number, cost: number): boolean
+	local now = os.clock()
+	local ok, nextReady = Validate.cadenceAccept(s.nextReady, now, cadence, 0.06)
+	if not ok then
+		reject(player, payload, "cadence")
+		return false
+	end
+	if cost > 0 and not loadout.trySpend(player, cost, round.matchNow()) then
+		if now - s.lastDryCue > GameConfig.Tank.DryCueMinInterval then
+			s.lastDryCue = now
+			reject(player, payload, "dry")
+		else
+			diagnostics.count("ShotRejected.dry")
+		end
+		return false
+	end
+	s.nextReady = nextReady
+	return true
+end
+
+-- Other clients draw disposable cues for this attack (never used for gameplay truth).
+function CombatService.cue(owner: Player?, msg)
+	for _, other in Players:GetPlayers() do
+		if other ~= owner then
+			net.fire(other, "Effect", msg)
+		end
+	end
 end
 
 function CombatService.handleAction(player: Player, payload: any)
@@ -498,7 +714,7 @@ function CombatService.handleAction(player: Player, payload: any)
 		diagnostics.count("ShotRejected.shape")
 		return
 	end
-	if not Validate.shape(payload, ALLOWED_FIRE, GameConfig.Net.MaxPayloadKeys) then
+	if not Validate.shape(payload, ALLOWED, GameConfig.Net.MaxPayloadKeys) then
 		return reject(player, payload, "shape")
 	end
 	if not (Validate.integer(payload.m, 0, 1e9) and Validate.integer(payload.l, 0, 1e9) and Validate.integer(payload.s, 0, 1e9) and Validate.number(payload.t, 0, 1e12) and Validate.vector(payload.o, 100000) and Validate.unitVector(payload.d)) then
@@ -519,7 +735,8 @@ function CombatService.handleAction(player: Player, payload: any)
 	if payload.s <= s.lastSeq then
 		return reject(player, payload, "sequence") -- duplicate or replayed (COMBAT-02, SEC-07)
 	end
-	-- 3. timing: client time estimate must be recent and not in the future
+	s.lastSeq = payload.s
+	-- 3. timing: the client time estimate must be recent and not in the future
 	local serverNow = Workspace:GetServerTimeNow()
 	if payload.t > serverNow + CB.MaxFutureSkew or payload.t < serverNow - CB.MaxAimAge then
 		return reject(player, payload, "timestamp")
@@ -529,60 +746,26 @@ function CombatService.handleAction(player: Player, payload: any)
 		return reject(player, payload, "origin")
 	end
 	-- 5. state
-	if life.climbing then
+	local a = payload.a
+	if life.climbing and a ~= "SecStop" and a ~= "ChargeCancel" then
 		return reject(player, payload, "climbing")
 	end
-	if inAnyBase(payload.o) then
+	if OFFENSIVE[a] and inAnyBase(payload.o) then
 		return reject(player, payload, "base") -- players must leave the protected base to attack (GDD 06.4)
 	end
+	-- 6. dispatch
+	if a == "Gadget" or a == "Ultimate" then
+		if not abilities then
+			return reject(player, payload, "unavailable")
+		end
+		return abilities.handleAction(player, payload, life, s)
+	end
 	local kit = loadout.kit(player)
-	if kit.Family ~= "projectile" then
-		return reject(player, payload, "family") -- other families arrive in Phase 05
+	local family = families[kit.Family]
+	if not family then
+		return reject(player, payload, "family")
 	end
-	-- 6. cadence (server-measured) then 7. atomic paint cost
-	local now = os.clock()
-	local ok, nextReady = Validate.cadenceAccept(s.nextReady, now, kit.Cadence, 0.06)
-	if not ok then
-		return reject(player, payload, "cadence")
-	end
-	if not loadout.trySpend(player, kit.Cost, round.matchNow()) then
-		s.lastSeq = payload.s
-		if now - s.lastDryCue > GameConfig.Tank.DryCueMinInterval then
-			s.lastDryCue = now
-			return reject(player, payload, "dry")
-		end
-		diagnostics.count("ShotRejected.dry")
-		return
-	end
-	s.nextReady = nextReady
-	s.lastSeq = payload.s
-	s.firingUntil = now + 0.25
-	character.onOffensiveAction(player)
-	-- accepted: deterministic spread shared with client prediction
-	local dir = Ballistics.spread(vector.create(payload.d.X, payload.d.Y, payload.d.Z), kit.SpreadDegrees or 0, life.lifeId, payload.s)
-	local d3 = Vector3.new(dir.X, dir.Y, dir.Z)
-	local attackId = newAttackId(player)
-	CombatService.spawnProjectile({
-		owner = player,
-		team = life.team,
-		attackId = attackId,
-		weapon = kit.Id,
-		origin = payload.o,
-		velocity = d3 * kit.ProjectileSpeed,
-		gravity = kit.Gravity,
-		range = kit.Range,
-		damage = kit.Damage,
-		paintRadius = kit.ImpactPaintRadius,
-		dripRadius = kit.TrailDripRadius,
-		dripSpacing = kit.TrailSampleSpacing,
-	})
-	diagnostics.count("ShotAccepted." .. kit.Id)
-	-- disposable cue so other clients can draw the shot (never used for gameplay truth)
-	for _, other in Players:GetPlayers() do
-		if other ~= player then
-			net.fire(other, "Effect", { k = "Shot", u = player.UserId, w = kit.Id, o = payload.o, d = d3, tm = life.team })
-		end
-	end
+	return family.handle(player, payload, kit, life, s)
 end
 
 function CombatService:Init(ctx)
@@ -593,24 +776,61 @@ function CombatService:Init(ctx)
 	paint = ctx.services.PaintService
 	round = ctx.services.RoundService
 	team = ctx.services.TeamService
+	abilities = ctx.services.AbilityService
+	local deps = {
+		net = net,
+		diagnostics = diagnostics,
+		character = character,
+		loadout = loadout,
+		paint = paint,
+		round = round,
+		team = team,
+		combat = CombatService,
+	}
+	for _, m in CombatFolder:GetChildren() do
+		if m:IsA("ModuleScript") then
+			local fam = require(m)
+			if type(fam) == "table" and fam.Family then -- helpers (e.g. Trail) are not families
+				fam.init(deps)
+				families[fam.Family] = fam
+			end
+		end
+	end
+end
+
+function CombatService.family(name: string)
+	return families[name]
 end
 
 function CombatService:Start()
 	net.on("Action", GameConfig.Net.ActionRequestsPerSecond, CombatService.handleAction)
+	net.on("HeldAim", GameConfig.Net.HeldAimUpdatesPerSecond, function(player, payload)
+		local fam = families.charger
+		if fam and fam.onHeldAim then
+			fam.onHeldAim(player, payload)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(p)
 		players[p] = nil
+		poses[p] = nil
 	end)
 	local acc = 0
 	RunService.Heartbeat:Connect(function(dt)
+		samplePoses()
 		stepAll(dt)
+		if not paused and round.isCombatLive() then
+			for _, fam in families do
+				if fam.tick then
+					fam.tick(dt, players)
+				end
+			end
+		end
 		acc += dt
 		if acc >= 0.25 then
 			acc = 0
 			tickTargets()
 		end
 	end)
-	local _ = team
-	local _w = Weapons
 end
 
 return CombatService

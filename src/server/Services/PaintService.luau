@@ -343,6 +343,12 @@ function PaintService.freeze(): { a: number, b: number, total: number }?
 	if not grid then
 		return nil
 	end
+	-- Flush unsent changes first: chunks painted since the last 10 Hz delta must get new versions, otherwise a client
+	-- that already holds the previous version would ignore their final content (found by PAINT-10 in Studio).
+	local pending = grid:flushDelta()
+	if pending then
+		net.fireAll("Paint", "delta", matchId, mapVersion, pending)
+	end
 	grid:freeze()
 	local full = grid:encodeChunks()
 	local totals = { a = grid.totals[1], b = grid.totals[2], total = grid.totalScoringArea, hash = grid:hash() }

@@ -70,21 +70,80 @@ function EffectsController.refreshGeometry()
 	params.FilterDescendantsInstances = list
 end
 
--- Launches a cosmetic projectile. `onImpact(position, normal)` fires when it hits world geometry.
+-- Launches a cosmetic ballistic object with an explicit velocity. `onImpact(position, normal)` fires on world contact.
+function EffectsController.launch(origin: Vector3, velocity: Vector3, gravity: number, range: number, teamId: number, size: number?, onImpact: ((Vector3, Vector3) -> ())?): any?
+	local part = take()
+	if not part then
+		return nil
+	end
+	local sz = size or 0.5
+	part.Size = Vector3.new(sz, sz, sz)
+	part.Color = palette[teamId] or Color3.new(1, 1, 1)
+	part.CFrame = CFrame.new(origin)
+	local fx = { part = part, pos = origin, vel = velocity, gravity = gravity, traveled = 0, range = range, onImpact = onImpact, dead = false }
+	table.insert(active, fx)
+	return fx
+end
+
+-- Launches a cosmetic shot for a projectile/blaster weapon along `direction`.
 function EffectsController.projectile(origin: Vector3, direction: Vector3, weaponId: string, teamId: number, onImpact: ((Vector3, Vector3) -> ())?): any?
 	local w = Weapons.Defs[weaponId]
 	if not w or not w.ProjectileSpeed then
 		return nil
 	end
-	local part = take()
-	if not part then
-		return nil
+	return EffectsController.launch(origin, direction * w.ProjectileSpeed, w.Gravity, w.Range, teamId, if w.Family == "blaster" then 0.9 else 0.5, onImpact)
+end
+
+-- Three cosmetic lobes for a Splash Pot volley (same arcs as the server).
+function EffectsController.volley(origin: Vector3, direction: Vector3, weaponId: string, teamId: number, onImpact: ((Vector3, Vector3) -> ())?): { any }
+	local w = Weapons.Defs[weaponId]
+	local out = {}
+	if not w or not w.LobeAnglesDegrees then
+		return out
 	end
-	part.Color = palette[teamId] or Color3.new(1, 1, 1)
-	part.CFrame = CFrame.new(origin)
-	local fx = { part = part, pos = origin, vel = direction * w.ProjectileSpeed, gravity = w.Gravity, traveled = 0, range = w.Range, onImpact = onImpact, dead = false }
-	table.insert(active, fx)
-	return fx
+	for _, angle in w.LobeAnglesDegrees do
+		local lobe = Ballistics.yaw(vector.create(direction.X, direction.Y, direction.Z), angle)
+		local vel = Vector3.new(lobe.X, lobe.Y, lobe.Z) * w.LobeSpeed + Vector3.new(0, w.LobeUpSpeed, 0)
+		local fx = EffectsController.launch(origin, vel, w.Gravity, w.Range, teamId, 0.8, onImpact)
+		if fx then
+			table.insert(out, fx)
+		end
+	end
+	return out
+end
+
+-- Short straight beam (charger shot, aim warning). Returns the part so warnings can be updated or removed.
+local beamPool: { BasePart } = {}
+function EffectsController.beam(from: Vector3, to: Vector3, teamId: number, seconds: number?, existing: BasePart?): BasePart
+	local p = existing or table.remove(beamPool)
+	if not p then
+		p = Instance.new("Part")
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		p.Material = Enum.Material.Neon
+	end
+	local len = (to - from).Magnitude
+	p.Size = Vector3.new(0.12, 0.12, math.max(0.1, len))
+	p.CFrame = CFrame.lookAt(from, to) * CFrame.new(0, 0, -len / 2)
+	p.Color = palette[teamId] or Color3.new(1, 1, 1)
+	p.Parent = folder
+	if seconds then
+		task.delay(seconds, function()
+			p.Parent = nil
+			table.insert(beamPool, p)
+		end)
+	end
+	return p
+end
+
+function EffectsController.releaseBeam(p: BasePart?)
+	if p then
+		p.Parent = nil
+		table.insert(beamPool, p)
+	end
 end
 
 function EffectsController.cancel(fx)
@@ -170,12 +229,28 @@ function EffectsController.start(deps)
 	folder.Parent = Workspace
 	EffectsController.refreshGeometry()
 	RunService.RenderStepped:Connect(step)
+	local aimBeams: { [number]: BasePart } = {}
 	deps.remotes.Effect.OnClientEvent:Connect(function(msg)
-		if type(msg) ~= "table" then
+		if type(msg) ~= "table" or msg.u == player.UserId then
 			return
 		end
-		if msg.k == "Shot" and msg.u ~= player.UserId and typeof(msg.o) == "Vector3" and typeof(msg.d) == "Vector3" then
+		local k = msg.k
+		if k == "Shot" and typeof(msg.o) == "Vector3" and typeof(msg.d) == "Vector3" then
 			EffectsController.projectile(msg.o, msg.d, msg.w, msg.tm)
+		elseif k == "Volley" and typeof(msg.o) == "Vector3" and typeof(msg.d) == "Vector3" then
+			EffectsController.volley(msg.o, msg.d, msg.w, msg.tm)
+		elseif k == "Beam" and typeof(msg.o) == "Vector3" and typeof(msg.e) == "Vector3" then
+			EffectsController.beam(msg.o, msg.e, msg.tm, 0.15)
+		elseif k == "Aim" and typeof(msg.o) == "Vector3" and typeof(msg.d) == "Vector3" and type(msg.u) == "number" then
+			-- charger warning: a line-of-sight-clipped line from the muzzle (GDD 07.3)
+			local hit = Workspace:Raycast(msg.o, msg.d * 120, params)
+			local finish = if hit then hit.Position else msg.o + msg.d * 120
+			aimBeams[msg.u] = EffectsController.beam(msg.o, finish, msg.tm, nil, aimBeams[msg.u])
+		elseif k == "ChargeEnd" and type(msg.u) == "number" then
+			EffectsController.releaseBeam(aimBeams[msg.u])
+			aimBeams[msg.u] = nil
+		elseif k == "Burst" and typeof(msg.o) == "Vector3" then
+			EffectsController.burst(msg.o, msg.tm or 1)
 		end
 	end)
 	deps.remotes.DamageResult.OnClientEvent:Connect(function(msg)

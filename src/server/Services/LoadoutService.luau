@@ -9,6 +9,8 @@ local Weapons = require(Shared.Config.Weapons)
 local Validate = require(Shared.Protocol.Validate)
 local UltimateCredit = require(Shared.Combat.UltimateCredit)
 
+local DevGate = require(script.Parent.Parent.DevGate)
+
 local LoadoutService = {}
 
 local T = GameConfig.Tank
@@ -208,12 +210,28 @@ function LoadoutService.resetMatchResources(player: Player)
 	end
 end
 
--- Tests/dev only: set the meter directly (no remote reaches this).
-function LoadoutService.setUltimateForTests(player: Player, value: number)
+-- Tests/dev only: set the meter directly (no remote reaches this; refused outside dev mode).
+function LoadoutService.setUltimateForTests(player: Player, value: number): boolean
 	local rec = records[player]
-	if rec then
+	if rec and DevGate.enabled() then
 		rec.ultimate.meter = value
+		return true
 	end
+	return false
+end
+
+-- Tests/dev only: swap the locked kit mid-match (no remote reaches this; refused outside dev mode).
+function LoadoutService.devSetKit(player: Player, id: string): boolean
+	local rec = records[player]
+	if not rec or not DevGate.enabled() or not Weapons.Defs[id] then
+		return false
+	end
+	rec.selected = id
+	if rec.locked then
+		rec.locked = id
+	end
+	player:SetAttribute("CCWeapon", id)
+	return true
 end
 
 return LoadoutService

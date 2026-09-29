@@ -54,9 +54,9 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | MOVE-03 | Engine + Client (real keyboard) | PASS | lost-paint detach while held; server validation geometric |
 | MOVE-04 | Client (real keyboard) | PASS | mantle onto platform; blocked ledge refused |
 | MOVE-05 | Pure + Engine | PASS | all refill conditions against the authoritative tank |
-| MOVE-06 | Pure | PASS (pure) | engine with weapons Phase 05 |
+| MOVE-06 | Pure + Engine | PASS | rolling/charging/pushing: no refill |
 | MOVE-07 | Client + Engine | PASS | held actions released on elimination |
-| MOVE-08 | — | NOT RUN | Phase 05 (dash/roll) |
+| MOVE-08 | Engine + real client | PASS | teleport step not painted; dash stops at wall |
 | MOVE-09 | Engine | PASS | regen delay/rate/reset |
 | CAM-01 | Client | PASS | blocked muzzle detected |
 | CAM-02 | Client (real keyboard) | PASS | view controllable during glide and climb (charge/gadget/ult Phase 05/06) |
@@ -76,9 +76,17 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | COMBAT-08 | Engine + Client (real mouse) | PASS | base both directions |
 | COMBAT-09 | Engine | PASS | shield removed by attack |
 | COMBAT-10 | Pure + Engine | PASS | OOB elimination; recent-hit credit (pure) |
-| COMBAT-11 | — | NOT RUN | Phase 05 |
-| WEAPON-01, 02, 04, 07 | Pure | PASS (pure formulas) | Combat.spec; engine pending |
-| WEAPON-03, 05, 06, 08, 09 | — | NOT RUN | |
+| COMBAT-11 | Engine | PASS (server) | kit locked in match; client listener stacking: single controller stack by design |
+| WEAPON-01 | Pure + Engine + real mouse | PASS | 5 hits, 0.48 s window |
+| WEAPON-02 | Engine + real client | PASS | 6 hits single event; dash cost/cooldown/state; dash stops at wall |
+| WEAPON-03 | Engine | PASS | flick 65/40/0; roll contact 60, strip, drain |
+| WEAPON-04 | Engine + real client | PASS | early release free, full 110, forged key rejected, glide/panel cancel |
+| WEAPON-05 | Engine | PASS | volley capped 55 |
+| WEAPON-06 | Engine | PASS | sweep 32, spam bounded, push exclusive |
+| WEAPON-07 | Engine | PASS | direct 70 xor splash |
+| WEAPON-08 | Engine | PASS | all classes accepted and blocked by cover (screens/shields: Phase 06) |
+| WEAPON-09 | Perf (stress_lab) | MEASURED | matrix in qa/phase-05.md; human playtest NOT RUN |
+
 | ABIL-01 (formula), ABIL-04 | Pure | PASS (pure) | |
 | ABIL-02, 03, 05..10 | — | NOT RUN | |
 
@@ -88,7 +96,8 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 |---|---|---|---|
 | UI-01 | Client | PASS | UIInput.spec |
 | UI-02 | — | BLOCKED | real multi-touch unavailable (no touch injection/device) |
-| UI-03..10 | — | NOT RUN | |
+| UI-03 | Engine | PASS (server) | one confirmed selection, locked live; client Equip double-submit guard in UIController |
+| UI-04..10 | — | NOT RUN | |
 | MAP-01 | — | NOT RUN | tactical map Phase 06 |
 | MAP-02 | Pure + Studio | PASS (fixture iterations) | duplicate id, budget, stacked scoring, hidden floor rejected |
 | MAP-03 | Studio | PASS (fixtures) | paint_lab/stress_lab spawns, clearance, sightline |
@@ -106,7 +115,8 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | NET-05..08 | — | NOT RUN | |
 | SEC-01 | Build + Engine | PASS | |
 | SEC-05..08 | Pure | PASS (pure) | engine adversarial suite Phase 08 |
-| SEC-02..04, 09, 10 | — | NOT RUN | |
+| SEC-09 | Engine | PASS | trail teleport step skipped |
+| SEC-02..04, 10 | — | NOT RUN (Phase 06/08) | |
 | DATA-01..04 | — | NOT RUN | Phase 07 |
 | PERF-01 | Engine + Client (desktop Studio) | PASS (desktop) / mobile BLOCKED | stress_lab measurements in qa/phase-02.md |
 | PERF-02..05 | — | NOT RUN | |

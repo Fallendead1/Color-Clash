@@ -38,9 +38,11 @@ local glideToggleMode = false
 local glideToggled = false
 local primaryBlockedUntilRelease = false
 
-local function emit(action: string, down: boolean)
+-- `forced` is a reason string when the release did not come from the player letting go (context change, focus loss,
+-- death). Weapons treat forced releases as cancels (e.g. a charger never fires because a panel opened; GDD 07.3).
+local function emit(action: string, down: boolean, forced: string?)
 	for _, fn in listeners do
-		local ok, err = pcall(fn, action, down)
+		local ok, err = pcall(fn, action, down, forced)
 		if not ok then
 			warn("[ColorClash] input listener error: " .. tostring(err))
 		end
@@ -59,14 +61,13 @@ function InputController.releaseAll(reason: string?)
 	for action, down in held do
 		if down then
 			held[action] = false
-			emit(action, false)
+			emit(action, false, reason or "forced")
 		end
 	end
 	glideToggled = false
-	local _ = reason
 end
 
-function InputController.onAction(fn: (string, boolean) -> ())
+function InputController.onAction(fn: (string, boolean, string?) -> ())
 	table.insert(listeners, fn)
 end
 

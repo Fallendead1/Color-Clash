@@ -10,7 +10,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | 02 | Prove painting before adding content | PASS_CODE (desktop) | `docs/qa/phase-02.md` | Mobile renderer budget BLOCKED (no device); 2-client paint test BLOCKED (solo Play only) |
 | 03 | Movement, camera, tank, survivability | PASS_CODE (desktop, keyboard/mouse) | `docs/qa/phase-03.md` | UI-02 multi-touch BLOCKED; MOVE-06/08 in Phase 05 |
 | 04 | First playable vertical slice | PASS_CODE (8-client item BLOCKED) | `docs/qa/phase-04.md` | 8-client test needs more free RAM (15.9 GB total, 0.8 GB free) |
-| 05 | All seven main weapons | NOT STARTED | — | — |
+| 05 | All seven main weapons | PASS_CODE | `docs/qa/phase-05.md` | Human playtest not run |
 | 06 | Core tactical tools | NOT STARTED | — | — |
 | 07 | Player-facing loop | NOT STARTED | — | — |
 | 08 | Harden, profile, Codex handoff | NOT STARTED | — | — |
