@@ -430,6 +430,53 @@ function PaintGrid.stampRect(
 	return result
 end
 
+-- Non-mutating preview of stampSphere: returns the cells ({patch, i, j}) that would change to `team`. Used by client
+-- prediction so predicted paint uses exactly the server's footprint rules (the authoritative result may differ only
+-- by occlusion/latency and replaces the prediction).
+function PaintGrid.previewSphere(self: Grid, center: vector, radius: number, team: number, opts: StampOptions?): { { patch: number, i: number, j: number } }
+	local o = opts or {} :: StampOptions
+	local out = {}
+	if self.frozen or radius <= 0 then
+		return out
+	end
+	local origin = o.origin or center
+	local isVisible = o.isVisible
+	local back = o.backTolerance or 0.25
+	local r = vector.create(radius, radius, radius)
+	local r2 = radius * radius
+	for _, patch in self:query(center - r, center + r) do
+		local def = patch.def
+		local ny = def.Normal.Y
+		if (o.minNormalY == nil or ny >= o.minNormalY) and (o.maxNormalY == nil or ny <= o.maxNormalY) then
+			local u, v, d = Surface.toLocal(def, center)
+			local _, _, od = Surface.toLocal(def, origin)
+			if math.abs(d) <= radius and od >= -back then
+				local planar = math.sqrt(math.max(0, r2 - d * d))
+				local i0 = math.max(0, math.floor(u - planar))
+				local i1 = math.min(def.SizeU - 1, math.floor(u + planar))
+				local j0 = math.max(0, math.floor(v - planar))
+				local j1 = math.min(def.SizeV - 1, math.floor(v + planar))
+				local lift = def.Normal * 0.05
+				for j = j0, j1 do
+					local dv = (j + 0.5) - v
+					for i = i0, i1 do
+						local du = (i + 0.5) - u
+						if du * du + dv * dv + d * d <= r2 then
+							local cell = j * def.SizeU + i
+							if Surface.isLegal(def, cell) and buffer.readu8(patch.owner, cell) ~= team then
+								if isVisible == nil or isVisible(origin, Surface.cellCenter(def, i, j) + lift) then
+									table.insert(out, { patch = patch.index, i = i, j = j })
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return out
+end
+
 ---------------------------------------------------------------------------------------------------------------
 -- Serialization: chunk payloads, deltas and snapshots.
 ---------------------------------------------------------------------------------------------------------------

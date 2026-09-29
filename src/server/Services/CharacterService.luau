@@ -11,6 +11,7 @@ local RunService = game:GetService("RunService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Rules = require(Shared.Movement.Rules)
+local Credit = require(Shared.Combat.Credit)
 local Validate = require(Shared.Protocol.Validate)
 
 local MapLoader = require(script.Parent.Parent.Map.MapLoader)
@@ -494,33 +495,20 @@ function CharacterService.eliminate(victim: Player, attacker: Player?, weapon: s
 	life.alive = false
 	local now = matchNow()
 	life.eliminatedAt = now
-	local credited: Player? = attacker
-	if credited == nil then
-		for k = #life.damageLog, 1, -1 do
-			local e = life.damageLog[k]
-			if now - e.t <= C.EnvironmentalCreditWindowSeconds and e.attacker then
-				credited = e.attacker
-				weapon = e.weapon
-				break
-			end
-		end
-	end
-	local assistTotals: { [Player]: number } = {}
-	for _, e in life.damageLog do
-		if e.attacker and e.attacker ~= credited and now - e.t <= C.AssistWindowSeconds then
-			assistTotals[e.attacker] = (assistTotals[e.attacker] or 0) + e.amount
-		end
-	end
+	local credited, creditedWeapon, assistPlayers = Credit.resolve(life.damageLog, now, attacker, weapon, function(p)
+		return team.teamOf(p) ~= life.team
+	end, C)
+	weapon = creditedWeapon
 	life.stats.deaths += 1
 	local assists = {}
 	if credited and lives[credited] then
 		lives[credited].stats.eliminations += 1
 	end
-	for p, dmg in assistTotals do
-		if dmg >= C.AssistMinimumDamage and lives[p] and team.teamOf(p) ~= life.team then
+	for _, p in assistPlayers do
+		if lives[p] then
 			lives[p].stats.assists += 1
-			table.insert(assists, p.UserId)
 		end
+		table.insert(assists, p.UserId)
 	end
 	if combat then
 		combat.onEliminated(victim)

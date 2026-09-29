@@ -22,6 +22,8 @@ local CameraController = require(Controllers.CameraController)
 local MovementController = require(Controllers.MovementController)
 local HudController = require(Controllers.HudController)
 local TouchController = require(Controllers.TouchController)
+local EffectsController = require(Controllers.EffectsController)
+local WeaponController = require(Controllers.WeaponController)
 
 InputController.start()
 UIController.start(InputController)
@@ -44,10 +46,30 @@ CameraController.start(InputController)
 MovementController.start({ input = InputController, paint = PaintClient, camera = CameraController, remotes = remotes })
 HudController.start({ ui = UIController, camera = CameraController, remotes = remotes, screens = ScreensController })
 TouchController.start(UIController, InputController)
+EffectsController.start({ ui = UIController, remotes = remotes })
+WeaponController.start({
+	input = InputController,
+	camera = CameraController,
+	movement = MovementController,
+	paint = PaintClient,
+	effects = EffectsController,
+	remotes = remotes,
+	ui = UIController,
+	hud = HudController,
+})
 
 PaintClient.onChange(function(kind)
 	if kind == "map" or kind == "clear" then
 		CameraController.refreshGeometry()
+		EffectsController.refreshGeometry()
+	end
+end)
+
+-- The match id travels with every action; keep it current from authoritative round state.
+remotes.RoundState.OnClientEvent:Connect(function(payload)
+	if type(payload) == "table" and payload.k == nil and payload.m then
+		player:SetAttribute("CCMatchId", payload.m)
+		player:SetAttribute("CCRoundState", payload.state)
 	end
 end)
 
