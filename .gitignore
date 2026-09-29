@@ -19,6 +19,16 @@
 roblox.yml
 sourcemap.json
 
+# Reference video and generated review evidence (never committed)
+/Colorclashvideoreference.*
+/reference/Colorclashvideoreference.*
+/reference/video_review/
+
+# Local tool environments / build outputs
+/tools/.venv/
+/build/
+__pycache__/
+
 # OS / editor
 .DS_Store
 Thumbs.db
