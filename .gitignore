@@ -1,0 +1,26 @@
+# Build outputs
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+!assets/**/*.rbxm
+!assets/**/*.rbxmx
+
+# Studio lock/backup files
+*.rbxl.lock
+*.rbxlx.lock
+
+# Wally packages
+/Packages
+/ServerPackages
+/DevPackages
+
+# Generated types
+roblox.yml
+sourcemap.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
