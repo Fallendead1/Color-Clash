@@ -296,14 +296,18 @@ end
 
 -- Client movement-state reports and milestones. Only whitelisted keys; values are advisory and re-validated.
 function CharacterService.onClientEvent(player: Player, payload: any)
-	if type(payload) ~= "table" or not Validate.oneOf(payload.k, { Move = true, PaintSynced = true, Active = true, Milestone = true }) then
+	if type(payload) ~= "table" or not Validate.oneOf(payload.k, { Move = true, PaintSynced = true, PaintHash = true, Active = true, Milestone = true }) then
 		diagnostics.count("ClientEvent.rejected")
 		return
 	end
 	local k = payload.k
-	if k == "PaintSynced" then
-		if Validate.shape(payload, { k = true, m = true, v = true }, 3) then
-			paint.onClientSynced(player, payload.m, payload.v)
+	if k == "PaintSynced" or k == "PaintHash" then
+		if Validate.shape(payload, { k = true, m = true, v = true, h = true }, 4) and Validate.integer(payload.h, 0, 4294967295) then
+			if k == "PaintSynced" then
+				paint.onClientSynced(player, payload.m, payload.v, payload.h)
+			else
+				paint.onClientHash(player, payload.m, payload.v, payload.h)
+			end
 		end
 	elseif k == "Move" then
 		if not Validate.shape(payload, { k = true, l = true, glide = true, climb = true }, 4) then

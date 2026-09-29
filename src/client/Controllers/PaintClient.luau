@@ -122,7 +122,7 @@ local function onPaint(kind: string, m: any, v: any, a: any, b: any)
 		if b == true then
 			synced = true
 			lastDeltaSeq = buffer.readu32(a, 0)
-			remotes.ClientEvent:FireServer({ k = "PaintSynced", m = matchId, v = mapVersion })
+			remotes.ClientEvent:FireServer({ k = "PaintSynced", m = matchId, v = mapVersion, h = grid:hash() })
 			emit("synced", nil)
 		end
 	elseif kind == "delta" then
@@ -140,7 +140,10 @@ local function onPaint(kind: string, m: any, v: any, a: any, b: any)
 		applyBuffer(a)
 		grid:freeze()
 		frozenTotals = b
-		emit("freeze", { totals = b, localHash = grid:hash() })
+		local h = grid:hash()
+		-- PaintHashMismatch diagnostics (GDD 15): the server compares this with its frozen hash
+		remotes.ClientEvent:FireServer({ k = "PaintHash", m = matchId, v = mapVersion, h = h })
+		emit("freeze", { totals = b, localHash = h })
 	end
 end
 
@@ -151,6 +154,10 @@ end
 
 function PaintClient.grid()
 	return grid
+end
+
+function PaintClient.renderer()
+	return renderer
 end
 
 function PaintClient.meta()

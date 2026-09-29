@@ -33,6 +33,7 @@ if not remotes then
 	return
 end
 
+PaintClient.setRenderer(require(script.Parent.Paint.NativeRenderer).new())
 PaintClient.start(remotes)
 ScreensController.start({ ui = UIController, input = InputController, paint = PaintClient, remotes = remotes })
 

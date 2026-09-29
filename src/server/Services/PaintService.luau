@@ -32,6 +32,8 @@ local matchId = 0
 local mapVersion = 0
 local encodedDefs = nil
 local synced: { [Player]: boolean } = {}
+local ackHash: { [Player]: number? } = {}
+local frozenAck: { [Player]: number? } = {}
 local lastResync: { [Player]: number } = {}
 local contribution: { [Player]: number } = {}
 local raycastByTeam: { [number]: RaycastParams } = {}
@@ -135,6 +137,8 @@ function PaintService:Start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		synced[player] = nil
+		ackHash[player] = nil
+		frozenAck[player] = nil
 		lastResync[player] = nil
 		contribution[player] = nil
 	end)
@@ -155,11 +159,35 @@ function PaintService:Stop()
 end
 
 -- Called by the client-event router when a client confirms it applied the full snapshot.
-function PaintService.onClientSynced(player: Player, m: any, v: any)
+-- `h` is the client's ownership hash at that moment (diagnostic only; later deltas may already differ).
+function PaintService.onClientSynced(player: Player, m: any, v: any, h: number?)
 	if m == matchId and v == mapVersion and grid then
 		synced[player] = true
+		ackHash[player] = h
 		diagnostics.event("PaintSynced", { player = player.UserId })
 	end
+end
+
+-- The client's hash of the frozen final state. A mismatch is a real divergence (GDD 15 PaintHashMismatch).
+function PaintService.onClientHash(player: Player, m: any, v: any, h: number)
+	if m ~= matchId or v ~= mapVersion or not grid or not grid.frozen then
+		return
+	end
+	local serverHash = grid:hash()
+	frozenAck[player] = h
+	if h == serverHash then
+		diagnostics.count("PaintHash.ok")
+	else
+		diagnostics.event("PaintHashMismatch", { player = player.UserId, client = h, server = serverHash })
+	end
+end
+
+function PaintService.ackHash(player: Player): number?
+	return ackHash[player]
+end
+
+function PaintService.frozenAck(player: Player): number?
+	return frozenAck[player]
 end
 
 function PaintService.isSynced(player: Player): boolean
@@ -174,6 +202,8 @@ function PaintService.setMap(desc, newMatchId: number)
 	grid = PaintGrid.new(desc.defs, P)
 	encodedDefs = MapCodec.encode(desc.defs)
 	table.clear(synced)
+	table.clear(ackHash)
+	table.clear(frozenAck)
 	table.clear(contribution)
 	rebuildRaycastParams()
 	diagnostics.event("PaintMapSet", { map = desc.mapId, match = newMatchId, scoring = grid.totalScoringArea, chunks = grid.chunkCount })
@@ -328,6 +358,8 @@ function PaintService.clear()
 	descriptor = nil
 	encodedDefs = nil
 	table.clear(synced)
+	table.clear(ackHash)
+	table.clear(frozenAck)
 	table.clear(raycastByTeam)
 	net.fireAll("Paint", "clear", oldMatch)
 end

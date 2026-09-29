@@ -5,6 +5,7 @@
 --   game.ServerScriptService:SetAttribute("CCTestRequest", "unit")            -- pure specs in Dev/unit
 --   game.ServerScriptService:SetAttribute("CCTestRequest", "engine")          -- all engine specs in Dev/engine
 --   game.ServerScriptService:SetAttribute("CCTestRequest", "engine:Round")    -- engine specs whose name contains "Round"
+--   game.ServerScriptService:SetAttribute("CCTestRequest", "perf")            -- heavy benchmarks in Dev/perf (manual)
 -- Results: attribute CCTestResult (summary text), CCTestSeq increments per completed run.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -72,6 +73,8 @@ local function run(request: string)
 		collect(script.Parent:FindFirstChild("unit"), "unit/", filter, specs)
 	elseif kind == "engine" then
 		collect(script.Parent:FindFirstChild("engine"), "engine/", filter, specs)
+	elseif kind == "perf" then
+		collect(script.Parent:FindFirstChild("perf"), "perf/", filter, specs)
 	end
 	local all = {}
 	local t0 = os.clock()

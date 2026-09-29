@@ -39,6 +39,9 @@ GDD values stay authoritative unless a decision here changes them.
   `IPaintRenderer` keeps it swappable. (b) SurfaceGui frames per rectangle: similar cost with more UI overhead.
 - **Consequence:** The renderer must pass PAINT-08/PERF-01 with measured part counts and update times. Only one production
   renderer is built.
+- **Measured (Phase 02, desktop Studio):** accurate at every tested cell. Adversarial checkerboard at budget = 65,960
+  parts, steady frame p95 equal to the no-paint baseline, +119 MB. Realistic heavy paint = 5,924 parts, +4 MB.
+  Renderer work is budgeted at 2.5 ms/frame. Full numbers: `docs/qa/phase-02.md`. Mobile is unmeasured (no device).
 - **Affected tests:** PAINT-08, PAINT-09, PERF-01.
 
 ## D-005 — Pure logic tested with Lune, engine logic tested in Studio Play
