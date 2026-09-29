@@ -18,6 +18,10 @@ local InputController = require(Controllers.InputController)
 local UIController = require(Controllers.UIController)
 local PaintClient = require(Controllers.PaintClient)
 local ScreensController = require(Controllers.ScreensController)
+local CameraController = require(Controllers.CameraController)
+local MovementController = require(Controllers.MovementController)
+local HudController = require(Controllers.HudController)
+local TouchController = require(Controllers.TouchController)
 
 InputController.start()
 UIController.start(InputController)
@@ -36,6 +40,16 @@ end
 PaintClient.setRenderer(require(script.Parent.Paint.NativeRenderer).new())
 PaintClient.start(remotes)
 ScreensController.start({ ui = UIController, input = InputController, paint = PaintClient, remotes = remotes })
+CameraController.start(InputController)
+MovementController.start({ input = InputController, paint = PaintClient, camera = CameraController, remotes = remotes })
+HudController.start({ ui = UIController, camera = CameraController, remotes = remotes, screens = ScreensController })
+TouchController.start(UIController, InputController)
+
+PaintClient.onChange(function(kind)
+	if kind == "map" or kind == "clear" then
+		CameraController.refreshGeometry()
+	end
+end)
 
 -- Gameplay input context: combat actions only while alive in a live match; panels push "Menu" on top.
 local function refreshContext()
@@ -55,6 +69,33 @@ for _, attr in { "CCAlive", "CCParticipating", "CCLifeId" } do
 	end)
 end
 refreshContext()
+
+-- Shoulder camera for match participants (Intro/Live/Pause); the default camera in staging, where the player uses
+-- menus with a free mouse.
+local function refreshCamera()
+	local round = ScreensController.round()
+	local s = round and round.state
+	local inMatch = player:GetAttribute("CCParticipating") == true and (s == "Intro" or s == "Live" or s == "VacancyPause")
+	local alive = player:GetAttribute("CCAlive") == true and player.Character ~= nil
+	local want = inMatch and alive
+	if want ~= CameraController.isActive() then
+		CameraController.setActive(want)
+	end
+end
+remotes.RoundState.OnClientEvent:Connect(function()
+	task.defer(refreshCamera)
+end)
+for _, attr in { "CCAlive", "CCParticipating" } do
+	player:GetAttributeChangedSignal(attr):Connect(refreshCamera)
+end
+player.CharacterAdded:Connect(function(character)
+	character:WaitForChild("HumanoidRootPart", 10)
+	if CameraController.isActive() then
+		CameraController.setActive(true) -- rebind to the new character
+	end
+	refreshCamera()
+end)
+refreshCamera()
 
 remotes.ClientEvent:FireServer({ k = "Milestone", name = "ClientReady" })
 player:SetAttribute("ColorClashClientReady", true)

@@ -44,7 +44,7 @@ player:GetAttributeChangedSignal("CCClientTestRequest"):Connect(function()
 	local count = 0
 	local t0 = os.clock()
 	for _, m in script.Parent.specs:GetChildren() do
-		local isPerf = string.sub(m.Name, 1, 4) == "Perf" -- heavy benchmarks run only when named explicitly
+		local isPerf = string.sub(m.Name, 1, 4) == "Perf" or string.sub(m.Name, 1, 6) == "Manual" -- benchmarks and input-driven samplers run only when named explicitly
 		if m:IsA("ModuleScript") and ((req == "all" and not isPerf) or string.find(string.lower(m.Name), string.lower(req), 1, true)) then
 			count += 1
 			local ok, spec = pcall(require, m)

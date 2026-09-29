@@ -12,7 +12,7 @@
 local PaintLab = {}
 
 PaintLab.MapId = "paint_lab"
-PaintLab.MapVersion = 5
+PaintLab.MapVersion = 6
 PaintLab.FloorY = 100
 
 local Y = PaintLab.FloorY
@@ -80,6 +80,10 @@ function PaintLab.build(): (Model, Model)
 	part(G, "platform_block", Vector3.new(12, 5, 12), CFrame.new(0, Y + 2.5, 20))
 	surface(S, "platform_top", Vector3.new(12, 1, 12), CFrame.new(0, Y + 4.5, 20), "Top", "Floor", true, false)
 	surface(S, "platform_climb_south", Vector3.new(12, 5, 0.2), CFrame.new(0, Y + 2.5, 13.9), "Front", "Wall", false, true)
+	-- Blocked ledge (MOVE-04): a climbable west face whose top is covered by a low slab, so no mantle is possible.
+	surface(S, "platform_climb_west", Vector3.new(0.2, 5, 12), CFrame.new(-6.1, Y + 2.5, 20), "Left", "Wall", false, true)
+	-- overhang slab 1.5 studs above the platform top: the ledge exists but has no standing clearance
+	part(G, "ledge_blocker", Vector3.new(3, 1.5, 12), CFrame.new(-4.5, Y + 7.25, 20), Color3.fromRGB(90, 90, 100))
 
 	-- 5-12-13 ramp rising toward -X onto the platform's east edge (22.6 degrees, under the 30-degree limit).
 	local theta = math.atan2(5, 12)

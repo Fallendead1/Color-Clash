@@ -73,6 +73,21 @@ GDD values stay authoritative unless a decision here changes them.
   Burst (0.25 s preparation, Splash Can trajectory). This is an interpretation, not a new value.
 - **Affected tests:** ABIL-05, ABIL-06.
 
+## D-009 — Shoulder camera only for match participants
+
+- **Decision:** The custom shoulder camera (mouse locked) runs for a participant in Intro/Live/VacancyPause. Staging uses
+  the default Roblox camera with a free mouse.
+- **Reason:** Staging is menu-driven (Play/Armory/Settings buttons). A locked mouse would make them unusable. During
+  the Intro the camera must stay controllable even though firing is disabled (GDD 12.1), so the lock follows the
+  camera, not the firing context.
+
+## D-010 — Mantle landing restricted to wall-top height; collision beats minimum camera distance
+
+- **Decision:** A mantle may only land within [root − 1.6, root + 0.3] studs of the current height, after a
+  standing-clearance check. The camera never clamps to a minimum distance that would place it inside geometry.
+- **Reason:** Found by MOVE-04 and CAM-03 in Studio. Without the window, a mantle vaulted onto an overhang 3 studs
+  above the climbable wall, and the camera entered a wall with the player's back to it.
+
 ## D-008 — Map legal-cell masks derive from collision
 
 - **Decision:** At map load, a cell is legal only if a 0.6 × 0.6 × 0.8 overlap probe placed 0.1–0.9 studs in front of it

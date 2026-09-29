@@ -46,11 +46,18 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | PAINT-10 | Pure + Engine + Client | PASS | forged newer delta after freeze ignored; hashes equal |
 | PAINT-11 | Pure + Engine + Client | PASS | reset during pending snapshot |
 | PAINT-12 | Client (renderer level) | PASS | denied prediction gone < 0.5 s; expiry. Weapon-driven version in Phase 04 |
-| MOVE-01 | Pure | PASS (pure) | engine Phase 03 |
-| MOVE-02..04 | — | NOT RUN | Phase 03 |
-| MOVE-05, MOVE-06 | Pure | PASS (pure) | engine Phase 03 |
-| MOVE-07..09 | — | NOT RUN | Phase 03 |
-| CAM-01..03 | — | NOT RUN | Phase 03 |
+| MOVE-01 | Pure + Client (real keyboard) | PASS | Own 26.0 / Neutral 10.0 / Enemy 9.0 measured |
+| MOVE-02 | Client (real keyboard) | PASS | glide exit < 0.12 s |
+| MOVE-03 | Engine + Client (real keyboard) | PASS | lost-paint detach while held; server validation geometric |
+| MOVE-04 | Client (real keyboard) | PASS | mantle onto platform; blocked ledge refused |
+| MOVE-05 | Pure + Engine | PASS | all refill conditions against the authoritative tank |
+| MOVE-06 | Pure | PASS (pure) | engine with weapons Phase 05 |
+| MOVE-07 | Client + Engine | PASS | held actions released on elimination |
+| MOVE-08 | — | NOT RUN | Phase 05 (dash/roll) |
+| MOVE-09 | Engine | PASS | regen delay/rate/reset |
+| CAM-01 | Client | PASS | blocked muzzle detected |
+| CAM-02 | Client (real keyboard) | PASS | view controllable during glide and climb (charge/gadget/ult Phase 05/06) |
+| CAM-03 | Client | PASS | near-wall pull-in outside geometry; shoulder swap |
 
 ## 18.3 Combat, weapons and abilities
 
@@ -67,7 +74,8 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | ID | Level | Result | Evidence |
 |---|---|---|---|
 | UI-01 | Client | PASS | UIInput.spec |
-| UI-02..10 | — | NOT RUN | |
+| UI-02 | — | BLOCKED | real multi-touch unavailable (no touch injection/device) |
+| UI-03..10 | — | NOT RUN | |
 | MAP-01 | — | NOT RUN | tactical map Phase 06 |
 | MAP-02 | Pure + Studio | PASS (fixture iterations) | duplicate id, budget, stacked scoring, hidden floor rejected |
 | MAP-03 | Studio | PASS (fixtures) | paint_lab/stress_lab spawns, clearance, sightline |

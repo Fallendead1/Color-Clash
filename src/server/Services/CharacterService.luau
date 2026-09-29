@@ -7,7 +7,6 @@
 local Players = game:GetService("Players")
 local PhysicsService = game:GetService("PhysicsService")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -317,6 +316,10 @@ function CharacterService.onClientEvent(player: Player, payload: any)
 		if life and life.alive and payload.l == life.lifeId and Validate.boolean(payload.glide) and Validate.boolean(payload.climb) then
 			life.glideHeld = payload.glide
 			life.climbing = payload.climb and CharacterService.validClimb(life)
+			if life.character then
+				-- replicated presentation state for every client (Codex animations read this; GDD 13.3)
+				life.character:SetAttribute("CCMoveState", if life.climbing then "Climbing" elseif payload.glide then "Gliding" else "Standing")
+			end
 			if combat and (payload.glide or payload.climb) then
 				combat.onGlideOrClimb(player)
 			end
@@ -331,30 +334,44 @@ function CharacterService.onClientEvent(player: Player, payload: any)
 	end
 end
 
--- A climb is legal only against a registered climbable wall cell owned by the player's team (GDD 05.2).
+-- A climb is legal only against a registered climbable wall whose cells at both contact samples (body and lower
+-- body) are owned by the player's team (GDD 05.2). Geometric, independent of which way the root happens to face.
 function CharacterService.validClimb(life: Life): boolean
 	local root = life.root
 	if not root then
 		return false
 	end
-	local desc = map.current()
-	if not desc then
+	local grid = paint.grid()
+	if not grid then
 		return false
 	end
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Include
-	params.FilterDescendantsInstances = { desc.model:FindFirstChild("PaintSurfaces") }
-	local look = root.CFrame.LookVector
-	local hit = Workspace:Raycast(root.Position, Vector3.new(look.X, 0, look.Z).Unit * 3, params)
-	if not hit then
-		return false
+	local pos = root.Position
+	local samples = { vector.create(pos.X, pos.Y, pos.Z), vector.create(pos.X, pos.Y - 1.4, pos.Z) }
+	local reach = vector.create(2.6, 2.6, 2.6)
+	for _, patch in grid:query(samples[1] - reach, samples[1] + reach) do
+		local def = patch.def
+		if def.Climbable and math.abs(def.Normal.Y) < 0.3 then
+			local ok = true
+			for _, s in samples do
+				local rel = s - def.Origin
+				local d = vector.dot(rel, def.Normal)
+				local i = math.floor(vector.dot(rel, def.U))
+				local j = math.floor(vector.dot(rel, def.V))
+				if d < 0 or d > 2.6 or i < 0 or j < 0 or i >= def.SizeU or j >= def.SizeV then
+					ok = false
+					break
+				end
+				if buffer.readu8(patch.owner, j * def.SizeU + i) ~= life.team then
+					ok = false
+					break
+				end
+			end
+			if ok then
+				return true
+			end
+		end
 	end
-	local part = hit.Instance
-	if part:GetAttribute("Climbable") ~= true then
-		return false
-	end
-	local patch, owner = paint.wallOwnerAt(hit.Position)
-	return patch ~= nil and owner == life.team
+	return false
 end
 
 function CharacterService.life(player: Player): Life?
@@ -520,6 +537,7 @@ function CharacterService.eliminate(victim: Player, attacker: Player?, weapon: s
 		life = life.lifeId,
 		pos = pos,
 		team = life.team,
+		respawnIn = GameConfig.Match.RespawnSeconds,
 	})
 	diagnostics.event("Eliminated", { victim = victim.UserId, attacker = credited and credited.UserId, weapon = weapon, life = life.lifeId })
 	if life.character then
@@ -651,6 +669,24 @@ function CharacterService.validateMovement(dt: number)
 		local pos = root.Position
 		local last = life.lastValidPos or pos
 		local flat = Vector3.new(pos.X - last.X, 0, pos.Z - last.Z).Magnitude
+		-- no flying: sustained airtime without descent while not climbing is corrected (GDD 05.2, MOVE-03)
+		if life.ground == "None" and not life.climbing then
+			life.airborneFor = (life.airborneFor or 0) + dt
+			if life.airborneFor > 3 and life.airborneStartY and pos.Y >= life.airborneStartY - 1 then
+				local back = life.lastGroundedPos or last
+				root.CFrame = CFrame.new(back) * root.CFrame.Rotation
+				root.AssemblyLinearVelocity = Vector3.zero
+				life.airborneFor = 0
+				diagnostics.event("MovementCorrected", { player = player.UserId, reason = "airborne" })
+			end
+			life.airborneStartY = life.airborneStartY or pos.Y
+		else
+			life.airborneFor = 0
+			life.airborneStartY = nil
+			if life.ground ~= "None" then
+				life.lastGroundedPos = pos
+			end
+		end
 		local maxSpeed = math.max(MV.GlideSpeed, MV.BrushPushSpeed) * 1.3
 		local allowed = maxSpeed * dt + 3 + life.burstAllowance
 		life.burstAllowance = 0

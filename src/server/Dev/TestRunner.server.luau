@@ -75,6 +75,8 @@ local function run(request: string)
 		collect(script.Parent:FindFirstChild("engine"), "engine/", filter, specs)
 	elseif kind == "perf" then
 		collect(script.Parent:FindFirstChild("perf"), "perf/", filter, specs)
+	elseif kind == "harness" then
+		collect(script.Parent:FindFirstChild("harness"), "harness/", filter, specs)
 	end
 	local all = {}
 	local t0 = os.clock()

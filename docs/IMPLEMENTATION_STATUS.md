@@ -8,7 +8,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | — | Video reference review | COMPLETE | `docs/VIDEO_OBSERVATIONS.md` | — |
 | 01 | Foundations, state and test harness | PASS_CODE | `docs/qa/phase-01.md` (unit 53/53 Lune+Studio, engine 15/15, client 8/8) | — |
 | 02 | Prove painting before adding content | PASS_CODE (desktop) | `docs/qa/phase-02.md` | Mobile renderer budget BLOCKED (no device); 2-client paint test BLOCKED (solo Play only) |
-| 03 | Movement, camera, tank, survivability | NOT STARTED | — | — |
+| 03 | Movement, camera, tank, survivability | PASS_CODE (desktop, keyboard/mouse) | `docs/qa/phase-03.md` | UI-02 multi-touch BLOCKED; MOVE-06/08 in Phase 05 |
 | 04 | First playable vertical slice | NOT STARTED | — | Multi-client runtime route unverified (see Capabilities) |
 | 05 | All seven main weapons | NOT STARTED | — | — |
 | 06 | Core tactical tools | NOT STARTED | — | — |

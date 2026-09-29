@@ -390,6 +390,19 @@ function RoundService.applyDevSettings()
 	end
 end
 
+-- Tests/dev harness: bring the live deadline to now (no remote reaches this; refused outside dev mode).
+function RoundService.devEndLiveNow(): boolean
+	if not DevGate.enabled() then
+		return false
+	end
+	if machine.state == "Live" then
+		machine.roundEndTime = realNow()
+	elseif machine.state == "VacancyPause" then
+		machine.graceEnd = realNow()
+	end
+	return true
+end
+
 function RoundService.lastResults()
 	return lastResults
 end
