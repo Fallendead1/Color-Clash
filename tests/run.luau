@@ -3,7 +3,7 @@
 
 local fs = require("@lune/fs")
 local process = require("@lune/process")
-local TestKit = require("../src/server/Dev/lib/TestKit")
+local TestKit = require("../src/shared/Dev/TestKit")
 
 local filter = process.args[1]
 

@@ -16,7 +16,7 @@ if not DevGate.enabled() then
 	return
 end
 
-local TestKit = require(script.Parent.lib.TestKit)
+local TestKit = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Dev"):WaitForChild("TestKit"))
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local function requireShared(path: string)

@@ -553,7 +553,6 @@ local function sendResource(player: Player, life: Life)
 end
 
 function CharacterService.tick(dt: number)
-	local live = round.isCombatLive()
 	local paused = round.isPaused()
 	local now = matchNow()
 	for player, life in lives do

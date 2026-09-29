@@ -18,8 +18,28 @@ return function(t)
 			expect(Players.CharacterAutoLoads):toBe(false)
 		end)
 
-		it("dev gate is on in Studio with the Dev folder and refuses nothing here", function()
+		it("dev gate is on in Studio with the Dev folder", function()
 			expect(S.DevGate.enabled()):toBe(true)
+		end)
+
+		it("SEC-01: without the Dev folder (production layout) the gate refuses every override", function()
+			-- A copy of DevGate in a folder that has no Dev sibling behaves exactly like the production build.
+			local folder = Instance.new("Folder")
+			local gate = game.ServerScriptService.Server.DevGate:Clone()
+			gate.Parent = folder
+			local G = require(gate)
+			expect(G.enabled()):toBe(false)
+			expect(G.set("MinimumReady", 1)):toBe(false)
+			expect(G.get("MinimumReady", 4)):toBe(4)
+			expect(G.devFolder()):toBe(nil)
+			folder:Destroy()
+		end)
+
+		it("SEC-01: no remote offers development or cheat controls", function()
+			for _, r in game.ReplicatedStorage.ColorClashNet:GetChildren() do
+				local n = string.lower(r.Name)
+				expect(string.find(n, "dev") == nil and string.find(n, "test") == nil and string.find(n, "give") == nil and string.find(n, "setwinner") == nil and string.find(n, "teleport") == nil):toBe(true)
+			end
 		end)
 	end)
 
@@ -39,12 +59,12 @@ return function(t)
 			local root = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
 			expect(root ~= nil):toBe(true)
 			local samples = {}
-			for k = 1, 6 do
+			for _ = 1, 6 do
 				table.insert(samples, root.Position)
 				task.wait(0.5)
 			end
 			local staging = S.MapService.stagingCFrame(1).Position
-			for k, pos in samples do
+			for _, pos in samples do
 				expect(pos.Y):toBeGreaterThan(staging.Y - 5)
 				expect((Vector3.new(pos.X, 0, pos.Z) - Vector3.new(staging.X, 0, staging.Z)).Magnitude):toBeLessThan(25)
 			end

@@ -18,7 +18,7 @@ Runners:
 | ENV-03 | Studio Play canary | PASS | console `[Color Clash] Server started` / `Client started` |
 | ENV-04 | Rojo sync vs Studio content | PASS | Workspace/Lighting/StarterPlayer/TextChatService contents unchanged after sync |
 | ENV-05 | — | NOT RUN | no other game's Rojo server active to test against |
-| FLOW-01 | Unit (pure) | PASS (pure) | RoundMachine.spec "one player waits"; engine test pending |
+| FLOW-01 | Unit + Engine (solo Play) | PASS | engine Boot.spec staging + RoundMachine.spec |
 | FLOW-02 | Unit (pure) | PASS (pure) | 20 s countdown, 2v2 split |
 | FLOW-03 | Unit (pure) | PASS (pure) | shortened once to ≤ 5 s |
 | FLOW-04 | Unit (pure) | PASS (pure) | canceled once, no orphan deadline |
@@ -74,7 +74,8 @@ Runners:
 
 | ID | Level run | Result | Evidence / note |
 |---|---|---|---|
-| UI-01..10 | — | NOT RUN | |
+| UI-01 | Client engine (Studio) | PASS | UIInput.spec: single root, contract valid, violations detected, contexts |
+| UI-02..10 | — | NOT RUN | |
 | MAP-01 | — | NOT RUN | |
 | MAP-02 | Unit (pure) + Studio edit | PASS (partial) | duplicate id / budget (pure); stacked-scoring and hidden-floor rejection seen in Studio on fixture iterations |
 | MAP-03 | Studio edit | PASS (fixture) | paint_lab v5: 4+4 spawns inside bases, clearance, no opposing sightline |
@@ -88,7 +89,7 @@ Runners:
 | NET-01 | Unit (pure) | PASS (pure) | snapshot + replay convergence |
 | NET-02 | Unit (pure) | PASS (pure) | stale/duplicate/reordered versions |
 | NET-03..08 | — | NOT RUN | |
-| SEC-01 | Build inspection | PASS (partial) | production.rbxlx contains no Dev/TestKit/fixture; server-side dev-command gate pending |
+| SEC-01 | Build inspection + Engine | PASS | verify.ps1 prod instance check; Boot.spec DevGate refusal without Dev; no dev remotes |
 | SEC-05 | Unit (pure) | PASS (pure) | shape/size validators |
 | SEC-06 | Unit (pure) | PASS (pure) | NaN/inf/bounds |
 | SEC-07 | Unit (pure) | PASS (pure) | cadence gate |

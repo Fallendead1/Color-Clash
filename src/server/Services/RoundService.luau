@@ -278,20 +278,16 @@ local function onEvents(events)
 					pauseStartedAt = nil
 				end
 				enterResults()
-			elseif e.to == "Reset" then
-				doReset()
-			elseif e.to == "Waiting" and e.reason and string.find(e.reason, "loading") then
-				-- recoverable loading failure: undo partial setup and return everyone to staging. The machine itself
-				-- decides the next state (it may already be counting down again in this same step).
+			elseif e.to == "Reset" or (e.to == "Waiting" and e.reason and string.find(e.reason, "loading")) then
+				-- Normal reset, or a recoverable loading failure: undo setup and return everyone to staging. After a
+				-- loading failure the machine itself decides the next state (it may already be counting down again).
 				doReset()
 			end
 		elseif e.kind == "FinalCue" then
 			net.fireAll("Notice", { k = "FinalCue" })
 		elseif e.kind == "NoContest" then
 			net.fireAll("Notice", { k = "NoContest", text = e.reason })
-		elseif e.kind == "CountdownShortened" or e.kind == "CountdownCanceled" then
-			changed = true
-		elseif e.kind == "DeadlineShifted" then
+		elseif e.kind == "CountdownShortened" or e.kind == "CountdownCanceled" or e.kind == "DeadlineShifted" then
 			changed = true
 		end
 	end

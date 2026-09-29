@@ -1,6 +1,13 @@
 {
   "name": "Color Clash",
-  "globIgnorePaths": ["src/server/Dev", "src/server/Dev/**"],
+  "globIgnorePaths": [
+    "src/server/Dev",
+    "src/server/Dev/**",
+    "src/shared/Dev",
+    "src/shared/Dev/**",
+    "src/client/Dev",
+    "src/client/Dev/**"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {

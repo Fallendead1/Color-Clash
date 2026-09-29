@@ -6,7 +6,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 |---|---|---|---|---|
 | 00 | Protect the project and establish truth | PASS_CODE | This file §Capabilities; `tools/verify.ps1` run 2026-09-29 | — |
 | — | Video reference review | COMPLETE | `docs/VIDEO_OBSERVATIONS.md` | — |
-| 01 | Foundations, state and test harness | IN PROGRESS | 53 Lune unit tests passing | — |
+| 01 | Foundations, state and test harness | PASS_CODE | `docs/qa/phase-01.md` (unit 53/53 Lune+Studio, engine 15/15, client 8/8) | — |
 | 02 | Prove painting before adding content | NOT STARTED (pure grid done) | — | EditableImage disabled for the experience (D-004 → native renderer) |
 | 03 | Movement, camera, tank, survivability | NOT STARTED | — | — |
 | 04 | First playable vertical slice | NOT STARTED | — | Multi-client runtime route unverified (see Capabilities) |
