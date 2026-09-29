@@ -44,11 +44,9 @@ function Trove.cleanItem(item: any)
 			pcall(task.cancel, item)
 		end
 	elseif t == "table" then
-		if getmetatable(item) == Trove then
-			item:destroy()
-		elseif type(item.Destroy) == "function" then
+		if type(item.Destroy) == "function" then
 			item:Destroy()
-		elseif type(item.destroy) == "function" then
+		elseif type(item.destroy) == "function" then -- nested troves and plain objects with destroy()
 			item:destroy()
 		end
 	end

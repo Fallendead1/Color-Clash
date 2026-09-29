@@ -139,7 +139,7 @@ function PaintGrid.new(defs: { Surface.SurfaceDef }, limits: { MaxScoringCells: 
 			maxB = maxB,
 		}
 		cellBase += cellCount
-		for c = 1, chunksU * chunksV do
+		for _ = 1, chunksU * chunksV do
 			self.chunkCount += 1
 			self.chunkVersion[self.chunkCount] = 0
 			self.chunkPatch[self.chunkCount] = index
@@ -208,11 +208,11 @@ function PaintGrid.getPatch(self: Grid, surfaceId: string): Patch?
 	return self.byId[surfaceId]
 end
 
-function PaintGrid.chunkOf(self: Grid, patch: Patch, i: number, j: number): number
+function PaintGrid.chunkOf(_self: Grid, patch: Patch, i: number, j: number): number
 	return patch.chunkBase + (j // CHUNK) * patch.chunksU + (i // CHUNK) + 1
 end
 
-function PaintGrid.getOwner(self: Grid, patch: Patch, cell: number): number
+function PaintGrid.getOwner(_self: Grid, patch: Patch, cell: number): number
 	return buffer.readu8(patch.owner, cell)
 end
 
@@ -543,7 +543,7 @@ function PaintGrid.encodeChunks(self: Grid, ids: { number }?): buffer
 		end
 		list = all
 	end
-	assert(list)
+	assert(list, "chunk list missing")
 	local out = buffer.create(6 + #list * (8 + CHUNK_BYTES))
 	buffer.writeu32(out, 0, self.sequence)
 	buffer.writeu16(out, 4, #list)

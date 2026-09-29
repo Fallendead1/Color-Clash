@@ -373,7 +373,7 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 	if #errors > 0 then
 		return nil, errors
 	end
-	assert(grid)
+	assert(grid, "grid missing after successful validation")
 	return {
 		mapId = model:GetAttribute("MapId"),
 		mapVersion = model:GetAttribute("MapVersion"),

@@ -53,7 +53,30 @@ GDD values stay authoritative unless a decision here changes them.
 
 ## D-006 — Development vs production Rojo projects
 
-- **Decision:** `default.project.json` (development) maps `tests/` and the `paint_lab` fixture tools. `production.project.json`
-  maps only `src/`, so test controls, fixtures and test runners cannot ship.
+- **Decision:** Dev-only code (TestKit, unit specs, the `paint_lab` fixture, engine test runners) lives in `src/server/Dev`.
+  `default.project.json` (development) syncs it with the rest of `src/server`. `production.project.json` excludes it with
+  `globIgnorePaths: ["src/server/Dev", "src/server/Dev/**"]`, so test controls, fixtures and test runners cannot ship.
+  `tools/verify.ps1` fails if the production build contains dev markers.
+- **Why not a separate `tests/` → ServerStorage mapping:** the running `rojo serve` does not hot-reload new project-tree
+  nodes. The user prefers not to restart it for routine changes, so new code goes under existing mapped folders.
+  `tests/run.luau` (the Lune runner) stays outside the mapped tree.
 - **Reason:** GDD 11.5, 09.4 and SEC-01. Test controls must be inaccessible in production.
 - **Affected tests:** SEC-01, FINAL-05.
+
+## D-007 — Paintstorm throw preparation
+
+- **Decision:** Paintstorm uses a 0.25 s preparation, the same as Color Burst.
+- **Reason:** GDD 08.3 says the beacon uses "the same throw preparation/trajectory" in the paragraph right after Color
+  Burst (0.25 s preparation, Splash Can trajectory). This is an interpretation, not a new value.
+- **Affected tests:** ABIL-05, ABIL-06.
+
+## D-008 — Map legal-cell masks derive from collision
+
+- **Decision:** At map load, a cell is legal only if a 0.6 × 0.6 × 0.8 overlap probe placed 0.1–0.9 studs in front of it
+  touches no map geometry. Scoring cells inside protected-base volumes are also masked. Scoring surfaces stacked in X/Z
+  (legal cells more than 1 stud apart vertically) reject the map.
+- **Reason:** GDD 09.5 requires masks validated against collision. Raycasts cannot detect a part that contains their
+  start point, which let floor under a platform stay legal on the first attempt (caught in Studio).
+- **Consequence:** Floors beneath raised structures must be physically closed (the fixture adds a solid ramp fill) or
+  the map is rejected. Codex's MAP_CONTRACT will state this. A 0.5-thick cover masks the two cell columns it intrudes on.
+- **Affected tests:** MAP-02, MAP-04, PAINT-04, CONTENT-01.
