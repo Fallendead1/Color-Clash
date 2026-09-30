@@ -40,11 +40,16 @@ local function take(): BasePart?
 		p.Material = Enum.Material.SmoothPlastic
 	end
 	liveCount += 1
+	p.Transparency = 0
 	p.Parent = folder
 	return p
 end
 
 local function give(p: BasePart)
+	local visual = p:FindFirstChild("CCAuthoredVisual")
+	if visual then
+		visual:Destroy()
+	end
 	liveCount -= 1
 	p.Parent = nil
 	table.insert(pool, p)
@@ -247,12 +252,33 @@ local WARN_RADIUS = { splash_can = 10, color_burst = 12, paintstorm = 18 }
 function EffectsController.throwable(origin: Vector3, velocity: Vector3, gravity: number, fuse: number, kind: string?, teamId: number)
 	local born = os.clock()
 	local size = if kind == "color_burst" then 1.6 else 1
-	EffectsController.launch(origin, velocity, gravity, 400, teamId, size, function(pos: Vector3, _normal: Vector3)
+	local fx = EffectsController.launch(origin, velocity, gravity, 400, teamId, size, function(pos: Vector3, _normal: Vector3)
 		local left = fuse - (os.clock() - born)
 		if left > 0.05 then
 			EffectsController.zone("Warn_" .. tostring(kind), pos, WARN_RADIUS[kind or ""] or 8, left, teamId, 0.65)
 		end
 	end)
+	-- Native authored capsule mounted on the existing pooled trajectory. The original warning, fuse,
+	-- collision query and lifetime remain code-owned; removing the pooled part removes the visual too.
+	local keys = { splash_can = "SplashCan", color_burst = "ColorBurstCapsule", paintstorm = "PaintstormBeacon" }
+	local assets = game.ReplicatedStorage:FindFirstChild("ColorClashAssets")
+	local library = assets and assets:FindFirstChild("Effects")
+	local template = library and library:FindFirstChild(keys[kind or ""] or "")
+	if fx and template and template:IsA("Model") then
+		local visual = template:Clone()
+		visual.Name = "CCAuthoredVisual"
+		visual:PivotTo(fx.part.CFrame)
+		for _, p in visual:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.Massless = false, false, false, false, true
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0, weld.Part1 = fx.part, p
+				weld.Parent = p
+			end
+		end
+		fx.part.Transparency = 1
+		visual.Parent = fx.part
+	end
 end
 
 function EffectsController.zoneCount(): number

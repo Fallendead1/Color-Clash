@@ -1,11 +1,12 @@
 # Implementation Status — Color Clash
 
-Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Statuses follow GDD 17.1.
+Milestone target: **Phase 09 production content** (not game complete). Statuses follow GDD 17.1.
 
-**Current project status: CODE_READY_FOR_CODEX** (2026-09-29). The Phase 00–08 code, fixture and contract gates are
-met on desktop Studio evidence, and the handoff is `docs/CODEX_HANDOFF.md`. The game is not complete:
-- production maps, models, animations, UI, VFX and audio are Codex Phase 09;
-- the multi-client, eight-client, device, real-save and published tests listed in the handoff remain pending.
+**Current project status: PHASE_09_BLOCKED** (2026-09-30). Original native maps, models, UI, icons and effects are
+tracked and implemented; animation/audio sources are authored but unpublished. See `docs/CODEX_CONTENT_REPORT.md`.
+The Phase 09 gate remains open: sightlines exceed the GDD target, the final production soak failed its memory-growth
+assertion, and asset publishing/permissions, clean Studio import and remaining device/multiplayer checks are pending.
+The prior Phase 00–08 code/fixture evidence is preserved; it is not a production-content acceptance claim.
 
 | Phase | Title | Status | Latest evidence | Current blocker |
 |---|---|---|---|---|
@@ -19,8 +20,8 @@ met on desktop Studio evidence, and the handoff is `docs/CODEX_HANDOFF.md`. The 
 | 06 | Core tactical tools | PASS_CODE (solo + real client) | `docs/qa/phase-06.md` | Teammate launch and target-death cases need 2 same-team clients (next multi-client session) |
 | 07 | Player-facing loop | PASS_CODE (wireframe, contract fixtures) | `docs/qa/phase-07.md` | Real DataStore save path BLOCKED (Studio API access off); FLOW-13 reconnect needs multi-client; physical devices BLOCKED |
 | 08 | Harden, profile, Codex handoff | PASS_CODE → CODE_READY_FOR_CODEX | `docs/qa/phase-08.md`, `docs/CODEX_HANDOFF.md` | 8-client stress BLOCKED (memory); devices BLOCKED |
-| 09 | Production assets, maps, UI (Codex) | NOT STARTED | — | Owned by Codex |
-| 10 | Claude verifies the actual game | NOT STARTED | — | Needs Phase 09 |
+| 09 | Production assets, maps, UI (Codex) | BLOCKED / incomplete | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/` | Unpublished animation/audio; long sightlines; final soak memory failure; remaining acceptance checks |
+| 10 | Claude verifies the actual game | NOT STARTED | Return handoff in `docs/CODEX_CONTENT_REPORT.md` | Investigation can resume; final acceptance needs Phase 09 gates |
 
 ## Project identity (ENV-01)
 

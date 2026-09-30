@@ -135,3 +135,17 @@ GDD values stay authoritative unless a decision here changes them.
   handler by key. Touch buttons and settings rows are rebuilt as well. Button logic runs through the same guarded path
   from clicks, gamepad, touch, and `UIController.activate(key)` (used by tests).
 - **Affected tests:** DATA-01..04, UI-10.
+
+## D-013 — Native content exports and explicit unfinished gates
+
+- **Decision:** Author original content with deterministic Lune builders and commit `.rbxmx` exports alongside both
+  Rojo mappings. Use native primitives and UI silhouettes without external texture dependencies. Keep map floor Y=100
+  to preserve the existing Studio baseplate and match fixture elevation; preserve manifest X/Z origins and extents.
+- **Decision:** Use `UIController.adopt` from the exported GUI's presentation script when StarterGui replication
+  follows bootstrap; destroy the old wireframe only after successful adoption. Do not change UI action ownership.
+- **Decision:** Keep missing-asset/paint-lab dev tests explicitly isolated from real content; test real content in
+  ProductionContent/ProductionSoak and on the actual native UI. A safe-area layout test waits for resolved geometry.
+- **Publication:** Do not place invented, temporary registration or unverified IDs in Animations/Sounds. Original
+  source clips and WAVs are tracked; the attempted Studio publishing API reported unavailable.
+- **Acceptance:** Phase 09 remains blocked by unpublished assets, excessive sightlines and a failed final memory
+  assertion. Preserve the failures in the report and QA matrix. No gameplay/balance changes were made to conceal them.

@@ -5,6 +5,9 @@
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
+      },
+      "ColorClashAssets": {
+        "$path": "assets/presentation/ColorClashAssets.rbxmx"
       }
     },
     "ServerScriptService": {
@@ -17,6 +20,22 @@
         "Client": {
           "$path": "src/client"
         }
+      }
+    },
+    "ServerStorage": {
+      "ColorClashMaps": {
+        "$path": "assets/maps/ColorClashMaps.rbxmx"
+      }
+    },
+    "Workspace": {
+      "$ignoreUnknownInstances": true,
+      "ColorClashStaging": {
+        "$path": "assets/staging/ColorClashStaging.rbxmx"
+      }
+    },
+    "StarterGui": {
+      "ColorClashUI": {
+        "$path": "assets/ui/ColorClashUI.rbxmx"
       }
     }
   }

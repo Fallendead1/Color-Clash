@@ -1,0 +1,39 @@
+2026-09-29/30, Color Clash place 130101797221207, Windows desktop Studio 0.740.19.7400003
+One local Studio client. No network impairment. No physical-device or eight-client claim.
+
+tools/verify.ps1:
+120 Luau source files: no syntax errors
+66 passed, 0 failed, 66 total (Lune)
+selene: 0 errors, 0 warnings
+Development and production Rojo builds passed
+Production excludes development modules; client surface scan passed
+
+Studio CCTestRequest = engine:
+[engine] 14 specs, 238950 ms
+112 passed, 0 failed, 112 total
+Existing gameplay engine specs explicitly use paint_lab fixtures.
+ProductionContent spec separately loads both actual maps and validates all seven actual weapons.
+
+Intermediate client run:
+[client:all] 3 specs, 6133 ms
+15 passed, 0 failed, 15 total
+
+Subsequent run exposed stale safe-area origin in the viewport test:
+740x360 Touch.Jump off-screen
+Direct resolved layout: position (630,292), size (64,64), viewport (740,360).
+Fixed the test to wait for layout before recording its relative origin. Final rerun recorded separately.
+
+Interrupted runs before fixture isolation and before final source updates are NOT PASS evidence.
+Publishing/audio/animation playback and device tests remain unrun.
+
+Final checks (2026-09-30):
+tools/verify.ps1: PASS, 120 source files, Lune 66/66, selene 0 errors/0 warnings,
+both builds, production dev exclusion, client surface scan 60/38.
+Map v3 ProductionContent: 3/3, 492 ms, no loader/slot warnings.
+Final native UI client: 15/15, 6257 ms, CCUIWireframe=false, CCUIErrors=0, CCLayoutDiag empty.
+Final ProductionSoak v3: FAIL, 233624 ms, memory grew 66.3 MB after warm-up.
+All 20 accelerated solo rounds completed, 0 handler errors, 0 hash mismatches. See soak-v3.json.
+Route audit: six sampled routes each map Success, center radius9/flanks radius6.
+Sightline criterion NOT MET: sampled 151/171 studs. See routes-v3.json.
+Animation upload attempt: CreateAssetAsync and CreateAssetVersionAsync are not available yet.
+No IDs created, no place published, no live permission test.

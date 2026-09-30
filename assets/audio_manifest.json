@@ -1,0 +1,342 @@
+[
+  {
+    "key": "Shot_sprayline",
+    "source": "assets/audio_sources/Shot_sprayline.wav",
+    "duration": 0.14,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Shot_twin_jets",
+    "source": "assets/audio_sources/Shot_twin_jets.wav",
+    "duration": 0.1,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Shot_splash_pot",
+    "source": "assets/audio_sources/Shot_splash_pot.wav",
+    "duration": 0.32,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Shot_popshot",
+    "source": "assets/audio_sources/Shot_popshot.wav",
+    "duration": 0.35,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Shot_linecaster",
+    "source": "assets/audio_sources/Shot_linecaster.wav",
+    "duration": 0.24,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Melee_lane_roller",
+    "source": "assets/audio_sources/Melee_lane_roller.wav",
+    "duration": 0.35,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Melee_street_sweeper",
+    "source": "assets/audio_sources/Melee_street_sweeper.wav",
+    "duration": 0.16,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "ChargeStart",
+    "source": "assets/audio_sources/ChargeStart.wav",
+    "duration": 1.1,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "ChargeFire",
+    "source": "assets/audio_sources/ChargeFire.wav",
+    "duration": 0.35,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Dash",
+    "source": "assets/audio_sources/Dash.wav",
+    "duration": 0.18,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Burst",
+    "source": "assets/audio_sources/Burst.wav",
+    "duration": 0.5,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Throw_splash_can",
+    "source": "assets/audio_sources/Throw_splash_can.wav",
+    "duration": 0.22,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Throw_color_burst",
+    "source": "assets/audio_sources/Throw_color_burst.wav",
+    "duration": 0.25,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Throw_paintstorm",
+    "source": "assets/audio_sources/Throw_paintstorm.wav",
+    "duration": 0.25,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UltPrep_color_burst",
+    "source": "assets/audio_sources/UltPrep_color_burst.wav",
+    "duration": 0.25,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UltPrep_paintstorm",
+    "source": "assets/audio_sources/UltPrep_paintstorm.wav",
+    "duration": 0.25,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Storm",
+    "source": "assets/audio_sources/Storm.wav",
+    "duration": 0.5,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Fizzle",
+    "source": "assets/audio_sources/Fizzle.wav",
+    "duration": 0.35,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "LaunchMarker",
+    "source": "assets/audio_sources/LaunchMarker.wav",
+    "duration": 0.65,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_HitConfirm",
+    "source": "assets/audio_sources/UI_HitConfirm.wav",
+    "duration": 0.08,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_ShieldHit",
+    "source": "assets/audio_sources/UI_ShieldHit.wav",
+    "duration": 0.15,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Eliminated",
+    "source": "assets/audio_sources/Eliminated.wav",
+    "duration": 0.45,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Spawn",
+    "source": "assets/audio_sources/Spawn.wav",
+    "duration": 0.5,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_FinalCue",
+    "source": "assets/audio_sources/UI_FinalCue.wav",
+    "duration": 0.7,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_RoundEnd",
+    "source": "assets/audio_sources/UI_RoundEnd.wav",
+    "duration": 1.2,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_Countdown",
+    "source": "assets/audio_sources/UI_Countdown.wav",
+    "duration": 0.14,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_RoundStart",
+    "source": "assets/audio_sources/UI_RoundStart.wav",
+    "duration": 0.45,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "GlideLoop",
+    "source": "assets/audio_sources/GlideLoop.wav",
+    "duration": 1,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "EmptyClick",
+    "source": "assets/audio_sources/EmptyClick.wav",
+    "duration": 0.07,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_LowPaint",
+    "source": "assets/audio_sources/UI_LowPaint.wav",
+    "duration": 0.25,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "ScreenBreak",
+    "source": "assets/audio_sources/ScreenBreak.wav",
+    "duration": 0.4,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_Confirm",
+    "source": "assets/audio_sources/UI_Confirm.wav",
+    "duration": 0.1,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "UI_Back",
+    "source": "assets/audio_sources/UI_Back.wav",
+    "duration": 0.1,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  },
+  {
+    "key": "Impact",
+    "source": "assets/audio_sources/Impact.wav",
+    "duration": 0.12,
+    "assetId": null,
+    "owner": "Unpublished; intended group 506801379",
+    "license": "Original project synthesis; no third-party samples",
+    "liveLoad": "NOT RUN",
+    "status": "UPLOAD_REQUIRED"
+  }
+]

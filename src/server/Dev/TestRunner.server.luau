@@ -84,6 +84,7 @@ local function run(request: string)
 	local t0 = os.clock()
 	local svc = services()
 	for _, s in specs do
+		ServerScriptService:SetAttribute("CCTestSpec", s.name)
 		local ok, spec = pcall(require, s.module)
 		if not ok then
 			table.insert(all, { name = s.name .. " (require)", ok = false, err = tostring(spec), ms = 0 })
@@ -98,6 +99,7 @@ local function run(request: string)
 	print("[ColorClash tests] " .. summary)
 	ServerScriptService:SetAttribute("CCTestResult", summary)
 	ServerScriptService:SetAttribute("CCTestSeq", (ServerScriptService:GetAttribute("CCTestSeq") or 0) + 1)
+	ServerScriptService:SetAttribute("CCTestSpec", nil)
 	running = false
 end
 

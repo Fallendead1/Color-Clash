@@ -1,5 +1,13 @@
 # CODEX_HANDOFF — Claude → Codex (HANDOFF-01)
 
+> **2026-09-30 return handoff:** Codex's implemented content and full evidence are in
+> `docs/CODEX_CONTENT_REPORT.md`. Phase 09 is **BLOCKED / incomplete**: publication, map sightlines and the final
+> soak memory assertion remain open. The original Phase 08 handoff below is retained as historical evidence.
+> Both Rojo projects now map `ServerStorage.ColorClashMaps`, `ReplicatedStorage.ColorClashAssets`,
+> `StarterGui.ColorClashUI`, and the narrow `Workspace.ColorClashStaging` export. Existing Workspace content is
+> preserved. Rojo serves port 34872, but plugin reconnection has not been confirmed; same-place Studio API imports
+> were used. Resume Claude with the report; do not infer Phase 09 or Phase 10 acceptance from structural test passes.
+
 **Status:** `CODE_READY_FOR_CODEX` — the code, fixture and contract phases 00–08 are complete. This is **not** a
 game-complete or release claim: final acceptance needs Codex's production content (Phase 09) and Claude's
 verification afterwards (Phase 10).

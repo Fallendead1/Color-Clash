@@ -117,7 +117,14 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | MAP-02 | Engine (fixtures) | PASS | missing/duplicate SurfaceId, off-grid face, manifest count mismatch, production map without manifest: precise reports |
 | MAP-03 | Engine (contract fixtures) | PASS | both manifest slots validate; unknown slot, off-centre base, footprint, unmirrored area, opposing-spawn sightline rejected |
 | MAP-04 | Engine (contract fixtures) | PASS | scoring cells in OOB, climb face topping into OOB, spawn in OOB rejected |
-| CONTENT-01..08 | — | NOT RUN | Codex Phase 09 |
+| CONTENT-01 | Actual production maps v3, solo Studio | PASS (loader) | 3/3 ProductionContent checks include actual manifests/slots, ramps, canopy collision and weapon construction; map design sightlines still fail |
+| CONTENT-02 | Native exports / source files | PARTIAL / BLOCKED | native models/icons load; 26 animation clips and 34 WAVs are unpublished, no runtime IDs or live permission evidence |
+| CONTENT-03 | Native weapon validator | PARTIAL | seven weapon attachment/weld checks pass; final visual action/athlete budget verification pending |
+| CONTENT-04 | Offline source marker audit | PARTIAL | seven attack windups match; published animation playback pending |
+| CONTENT-05 | Actual native UI, solo Studio | PASS (automated desktop) | 15/15 final client checks, six viewports; CCUIWireframe=false, CCUIErrors=0; physical input pending |
+| CONTENT-06 | — | NOT RUN | full low-quality/palette warning readability review pending |
+| CONTENT-07 | Offline dev/prod builds + same-place API import | PARTIAL | builds pass; clean Studio import and Rojo reconnect confirmation pending |
+| CONTENT-08 | Source manifest + native budgets | PARTIAL | original source inventory, map cell/patch budgets pass; publishing permissions and full device/athlete budgets pending |
 
 ## 18.5 Network, security, saves and performance
 
@@ -159,4 +166,15 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | ID | Result |
 |---|---|
 | HANDOFF-01 | PASS (document review) — `docs/CODEX_HANDOFF.md`: exact commit reference, contracts, inventory, fixture evidence, pending real-content tests |
-| HANDOFF-02, FINAL-01..06 | NOT RUN (Phase 09/10) |
+| HANDOFF-02 | Report and tracked content delivered; Phase 09 gate BLOCKED. See `docs/CODEX_CONTENT_REPORT.md`. |
+| FINAL-01..06 | NOT RUN / BLOCKED (Phase 09/10 acceptance incomplete) |
+
+### Phase 09 production soak and map limits (2026-09-30)
+
+`docs/qa/phase-09/soak-v3.json`: **FAIL** memory assertion (+66.3 MB after warm-up); 20 accelerated solo rounds on
+actual maps, 0 handler errors and 0 paint hash mismatches. The earlier v2 soak passed but does not supersede this
+failure. PERF-03 remains unaccepted for final content. This was not an eight-client or device performance test.
+`routes-v3.json`: sampled center radius-9 and flank radius-6 routes all succeed; center distance estimates mirror.
+Sightlines reach 151/171 studs, above the roughly 90-stud target. MAP-03 production design acceptance remains open;
+fixture passes above do not certify the actual layouts. Human timing, screen-blocked flank and Canopy ±58 lanes
+need further checks.

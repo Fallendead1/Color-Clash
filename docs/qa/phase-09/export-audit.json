@@ -1,0 +1,353 @@
+{
+  "animations": {
+    "Attack_lane_roller": {
+      "duration": 0.8,
+      "fireMarkers": [
+        0.18000000715255737
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_linecaster": {
+      "duration": 0.35,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_popshot": {
+      "duration": 0.8,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_splash_pot": {
+      "duration": 0.65,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_sprayline": {
+      "duration": 0.12,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_street_sweeper": {
+      "duration": 0.22,
+      "fireMarkers": [
+        0.05000000074505806
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Attack_twin_jets": {
+      "duration": 0.09,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "BrushSecondary": {
+      "duration": 0.65,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "ChargeHold": {
+      "duration": 1.1,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "ChargeRelease": {
+      "duration": 0.35,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Climb": {
+      "duration": 0.8,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "Dash": {
+      "duration": 0.18,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Eliminated": {
+      "duration": 0.4,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Fall": {
+      "duration": 0.6,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "Gadget": {
+      "duration": 0.4,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Glide": {
+      "duration": 0.8,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "GlideEntry": {
+      "duration": 0.12,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "GlideExit": {
+      "duration": 0.12,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Idle": {
+      "duration": 2,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "Jump": {
+      "duration": 0.4,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Mantle": {
+      "duration": 0.55,
+      "fireMarkers": [
+        0.20000000298023224
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "RollerSecondary": {
+      "duration": 0.8,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    },
+    "Spawn": {
+      "duration": 0.5,
+      "fireMarkers": [
+        0
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Throw": {
+      "duration": 0.35,
+      "fireMarkers": [
+        0.15000000596046448
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "UltPrep": {
+      "duration": 0.25,
+      "fireMarkers": [
+        0.25
+      ],
+      "looped": false,
+      "status": "UNPUBLISHED"
+    },
+    "Walk": {
+      "duration": 0.7,
+      "fireMarkers": {},
+      "looped": true,
+      "status": "UNPUBLISHED"
+    }
+  },
+  "blockers": [
+    "Animation sources require publishing and live permission verification",
+    "Original audio WAVs require upload and live permission verification",
+    "Physical-device and 8-client checks not run",
+    "Map v3 sampled sightlines exceed the GDD target; see routes-v3.json",
+    "Map v3 production soak failed memory growth assertion; see soak-v3.json"
+  ],
+  "contentVersion": 1,
+  "contractVersion": 1,
+  "effects": {
+    "Beam": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "Burst": {
+      "lifetime": 0.35,
+      "parts": 9
+    },
+    "ChargeReady": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "ColorBurstCapsule": {
+      "lifetime": 1,
+      "parts": 5
+    },
+    "DashWake": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "Fizzle": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "Impact": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "LaunchLanding": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "LaunchMarker": {
+      "lifetime": 0.35,
+      "parts": 5
+    },
+    "LaunchTransit": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "Muzzle_linecaster": {
+      "lifetime": 0.07,
+      "parts": 4
+    },
+    "Muzzle_popshot": {
+      "lifetime": 0.07,
+      "parts": 4
+    },
+    "Muzzle_splash_pot": {
+      "lifetime": 0.07,
+      "parts": 4
+    },
+    "Muzzle_sprayline": {
+      "lifetime": 0.07,
+      "parts": 4
+    },
+    "Muzzle_twin_jets": {
+      "lifetime": 0.07,
+      "parts": 4
+    },
+    "PaintScreen": {
+      "lifetime": 1,
+      "parts": 5
+    },
+    "PaintstormBeacon": {
+      "lifetime": 1,
+      "parts": 4
+    },
+    "ResultsCue": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "ScreenBreak": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "ScreenHit": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "ShieldHit": {
+      "lifetime": 0.35,
+      "parts": 4
+    },
+    "SplashCan": {
+      "lifetime": 1,
+      "parts": 3
+    },
+    "Storm": {
+      "lifetime": 0.5,
+      "parts": 13
+    }
+  },
+  "externalAssetIds": {},
+  "maps": {
+    "canopy_courts": {
+      "mapVersion": 3,
+      "nativeParts": 173,
+      "patches": 9,
+      "scoringCells": 32704,
+      "wallCells": 2240
+    },
+    "switchyard": {
+      "mapVersion": 3,
+      "nativeParts": 165,
+      "patches": 9,
+      "scoringCells": 31530,
+      "wallCells": 2064
+    }
+  },
+  "ui": {
+    "contractErrors": 0,
+    "isWireframe": false,
+    "nativeInstances": 352
+  },
+  "weapons": {
+    "lane_roller": {
+      "conservativeTriangleBound": 2048,
+      "parts": 8
+    },
+    "linecaster": {
+      "conservativeTriangleBound": 2048,
+      "parts": 8
+    },
+    "popshot": {
+      "conservativeTriangleBound": 1536,
+      "parts": 6
+    },
+    "splash_pot": {
+      "conservativeTriangleBound": 2304,
+      "parts": 9
+    },
+    "sprayline": {
+      "conservativeTriangleBound": 2048,
+      "parts": 8
+    },
+    "street_sweeper": {
+      "conservativeTriangleBound": 3328,
+      "parts": 13
+    },
+    "twin_jets": {
+      "conservativeTriangleBound": 4096,
+      "parts": 16
+    }
+  }
+}

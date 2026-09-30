@@ -18,6 +18,8 @@ end
 
 -- Starts (or reuses) a live solo match. Returns the player, their team and the map descriptor.
 function MatchHarness.startSolo(S, liveSeconds: number?)
+	-- These specs target paint_lab by definition, even when production maps are installed.
+	S.DevGate.set("UseFixture", true)
 	local p = Players:GetPlayers()[1]
 	assert(p, "no player")
 	if S.RoundService.state() == "Live" and S.TeamService.isParticipating(p) then

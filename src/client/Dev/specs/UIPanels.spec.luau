@@ -1,4 +1,4 @@
--- Client UI behaviour (Phase 07): UI-04 gamepad reach/escape, UI-05 viewport layout (wireframe), UI-06 long names and
+-- Client UI behaviour: UI-04 gamepad reach/escape, UI-05 viewport layout (active exported UI), UI-06 long names and
 -- eight-player scoreboard, UI-08 notices, UI-10 production-UI swap by keys, Settings apply + coalesced patches.
 -- Staging-safe: runs outside a match. Layout checks apply to the WIREFRAME (Codex re-runs them on production UI).
 return function(t)
@@ -10,7 +10,16 @@ return function(t)
 	local player = Players.LocalPlayer
 	local U = C.UIController
 	local I = C.InputController
-	local Wireframe = require(player.PlayerScripts.Client.UI.Wireframe)
+	local function cloneActiveUI()
+		local authored = game:GetService("StarterGui"):FindFirstChild("ColorClashUI")
+		local clone = if authored then authored:Clone() else require(player.PlayerScripts.Client.UI.Wireframe).build()
+		for _, d in clone:GetDescendants() do
+			if d:IsA("LocalScript") then
+				d:Destroy()
+			end
+		end
+		return clone
+	end
 
 	-- time-based (RenderStepped does not fire while the Studio viewport is hidden)
 	local function waitFrames(n)
@@ -26,7 +35,10 @@ return function(t)
 				waitFrames(8)
 				local rootInst = U.get(U.PANELS[name])
 				local sel = GuiService.SelectedObject
-				player:SetAttribute("CCGamepadDiag", string.format("%s sel=%s device=%s", name, tostring(sel and sel:GetFullName()), I.device()))
+				player:SetAttribute(
+					"CCGamepadDiag",
+					string.format("%s sel=%s device=%s", name, tostring(sel and sel:GetFullName()), I.device())
+				)
 				if name ~= "Scoreboard" then -- the scoreboard is read-only; it only needs to be escapable
 					expect(sel ~= nil and sel:IsDescendantOf(rootInst)):toBe(true)
 				end
@@ -46,7 +58,7 @@ return function(t)
 		end)
 	end)
 
-	describe("UI-05 viewports (wireframe)", function()
+	describe("UI-05 viewports (active UI)", function()
 		it("buttons stay on screen, touch targets >= 48 px and do not overlap, text fits", function()
 			local sizes = { { 1920, 1080 }, { 1366, 768 }, { 1280, 720 }, { 1024, 768 }, { 844, 390 }, { 740, 360 } }
 			local problems = {}
@@ -60,12 +72,14 @@ return function(t)
 				viewport.Size = UDim2.fromOffset(sz[1], sz[2])
 				viewport.BackgroundTransparency = 1
 				viewport.Parent = holder
-				local wf = Wireframe.build()
+				local wf = cloneActiveUI()
 				for _, c in wf:GetChildren() do
 					c.Parent = viewport
 				end
 				wf:Destroy()
 				holder.Parent = player.PlayerGui
+				-- Resolve safe-area and top-bar layout before capturing the relative origin.
+				waitFrames(2)
 				local found = {}
 				for _, d in viewport:GetDescendants() do
 					local k = d:GetAttribute("UIKey")
@@ -89,12 +103,27 @@ return function(t)
 						root.Visible = true
 						waitFrames(2)
 						for _, d in root:GetDescendants() do
-							if d:IsA("GuiButton") and d:GetAttribute("UIKey") and not string.find(d:GetAttribute("UIKey"), "Template") then
+							if
+								d:IsA("GuiButton")
+								and d:GetAttribute("UIKey")
+								and not string.find(d:GetAttribute("UIKey"), "Template")
+							then
 								if not inside(d) then
-									table.insert(problems, string.format("%dx%d %s off-screen", sz[1], sz[2], d:GetAttribute("UIKey")))
+									table.insert(
+										problems,
+										string.format("%dx%d %s off-screen", sz[1], sz[2], d:GetAttribute("UIKey"))
+									)
 								end
 								if d.AbsoluteSize.Y < 47.5 or d.AbsoluteSize.X < 47.5 then
-									table.insert(problems, string.format("%dx%d %s smaller than 48 px", sz[1], sz[2], d:GetAttribute("UIKey")))
+									table.insert(
+										problems,
+										string.format(
+											"%dx%d %s smaller than 48 px",
+											sz[1],
+											sz[2],
+											d:GetAttribute("UIKey")
+										)
+									)
 								end
 							end
 						end
@@ -120,7 +149,16 @@ return function(t)
 						local pa, sa = touchKeys[a].AbsolutePosition, touchKeys[a].AbsoluteSize
 						local pb, sb = touchKeys[b].AbsolutePosition, touchKeys[b].AbsoluteSize
 						if pa.X < pb.X + sb.X and pb.X < pa.X + sa.X and pa.Y < pb.Y + sb.Y and pb.Y < pa.Y + sa.Y then
-							table.insert(problems, string.format("%dx%d %s overlaps %s", sz[1], sz[2], touchKeys[a]:GetAttribute("UIKey"), touchKeys[b]:GetAttribute("UIKey")))
+							table.insert(
+								problems,
+								string.format(
+									"%dx%d %s overlaps %s",
+									sz[1],
+									sz[2],
+									touchKeys[a]:GetAttribute("UIKey"),
+									touchKeys[b]:GetAttribute("UIKey")
+								)
+							)
 						end
 					end
 				end
@@ -137,7 +175,19 @@ return function(t)
 			local long = "Participant_With_A_Very_Long_Display_Name_" -- 42 chars
 			local list = {}
 			for k = 1, 8 do
-				table.insert(list, { userId = 1000 + k, name = long .. k, team = if k % 2 == 0 then 2 else 1, participating = true, paint = k * 37 % 200, eliminations = k, assists = 8 - k, deaths = k % 3 })
+				table.insert(
+					list,
+					{
+						userId = 1000 + k,
+						name = long .. k,
+						team = if k % 2 == 0 then 2 else 1,
+						participating = true,
+						paint = k * 37 % 200,
+						eliminations = k,
+						assists = 8 - k,
+						deaths = k % 3,
+					}
+				)
 			end
 			table.insert(list, { userId = 2000, name = "spectator", team = 0, participating = false, paint = 0 })
 			U.openPanel("Scoreboard")
@@ -220,7 +270,7 @@ return function(t)
 	describe("UI-10 production UI swap by keys", function()
 		it("a restructured non-wireframe UI with the same keys is adopted and every binding works", function()
 			local original = U.root()
-			local prod = Wireframe.build()
+			local prod = cloneActiveUI()
 			prod.Name = UIContract.RootName
 			prod:SetAttribute("IsWireframe", false)
 			-- change the hierarchy: every top-level child moves under two new wrapper frames with other names
@@ -259,10 +309,10 @@ return function(t)
 			expect(rowsInProd):toBe(8)
 			expect(U.activate("Settings.Close")):toBe(true)
 			expect(U.isOpen("Settings")):toBe(false)
-			-- back to the wireframe
+			-- back to the original root, whether authored content or development wireframe
 			local back = U.adopt(original)
 			expect(back):toBe(true)
-			expect(U.isWireframe()):toBe(true)
+			expect(U.isWireframe()):toBe(original:GetAttribute("IsWireframe") == true)
 			prod:Destroy()
 		end)
 	end)

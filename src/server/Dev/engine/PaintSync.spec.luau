@@ -24,6 +24,7 @@ return function(t)
 		local desc, grid
 
 		it("NET-01 a client joining after paint converges to the authoritative state", function()
+			S.DevGate.set("UseFixture", true)
 			S.MapService.unload()
 			local errors
 			desc, errors = S.MapService.loadNext()

@@ -19,7 +19,8 @@ return function(t)
 			local _, errors = UIContract.validate(C.UIController.root())
 			expect(#errors):toBe(0)
 			expect(player:GetAttribute("CCUIErrors")):toBe(0)
-			expect(C.UIController.isWireframe()):toBe(true) -- no Codex UI yet
+			local authored = game:GetService("StarterGui"):FindFirstChild("ColorClashUI")
+			expect(C.UIController.isWireframe()):toBe(authored == nil)
 		end)
 
 		it("client bootstrap ran once", function()

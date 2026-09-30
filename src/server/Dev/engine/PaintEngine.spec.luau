@@ -30,6 +30,7 @@ return function(t)
 		local grid
 
 		it("loads the fixture outside a round", function()
+			S.DevGate.set("UseFixture", true)
 			expect(S.RoundService.state()):toBe("Waiting")
 			local desc, errors = S.MapService.loadNext()
 			expect(#errors):toBe(0)

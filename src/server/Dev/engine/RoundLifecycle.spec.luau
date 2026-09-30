@@ -23,6 +23,7 @@ return function(t)
 		local conn
 
 		it("configures dev overrides", function()
+			S.DevGate.set("UseFixture", true)
 			expect(S.DevGate.set("MinimumReady", 1)):toBe(true)
 			S.DevGate.set("AllowEmptyTeam", true)
 			S.DevGate.set("CountdownSeconds", 1)
@@ -111,7 +112,8 @@ return function(t)
 			expect(p:GetAttribute("CCTeam")):toBe(0)
 			expect(p:GetAttribute("CCReady")):toBe(true) -- ready persists between rounds (GDD 03.2)
 			local root = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-			expect(root ~= nil and root.Position.Y > 95 and math.abs(root.Position.Z - 200) < 25):toBe(true)
+			local staging = S.MapService.stagingCFrame(1).Position
+			expect(root ~= nil and (root.Position - staging).Magnitude < 25):toBe(true)
 		end)
 
 		it("records the transition order", function()

@@ -32,6 +32,7 @@ return function(t)
 
 	describe("Weapon model contract", function()
 		local assets
+		local existing
 		it("validates good and broken models precisely", function()
 			assets = Instance.new("Folder")
 			assets.Name = "ColorClashAssets"
@@ -66,53 +67,76 @@ return function(t)
 			local half = twin.Left:Clone()
 			half.Parent = nil
 			twin.Left:Destroy()
-			expect(string.find(table.concat(WeaponModels.validate(twin, "twin_jets"), "; "), "missing child Model Left", 1, true) ~= nil):toBe(true)
+			expect(
+				string.find(
+					table.concat(WeaponModels.validate(twin, "twin_jets"), "; "),
+					"missing child Model Left",
+					1,
+					true
+				) ~= nil
+			):toBe(true)
 			half.Parent = twin
 		end)
 
 		it("binds the equipped model as presentation only; missing/invalid reported once", function()
-			local p = H.startSolo(S)
-			WeaponModels.resetReports()
-			S.LoadoutService.devSetKit(p, "sprayline")
-			task.wait(0.3)
-			local character = p.Character
-			expect(character:GetAttribute("CCWeaponModel")):toBe("sprayline")
-			local m = character:FindFirstChild("CCWeaponModel")
-			expect(m ~= nil):toBe(true)
-			for _, d in m:GetDescendants() do
-				if d:IsA("BasePart") then
-					expect(d.CanCollide or d.CanQuery or d.CanTouch or not d.Massless or d.Anchored):toBe(false)
-				end
+			existing = ReplicatedStorage:FindFirstChild("ColorClashAssets")
+			if existing == assets then
+				existing = nil
 			end
-			task.wait(0.3)
-			local grip = m.Handle.Grip
-			local hand = character.RightHand.RightGripAttachment
-			expect((grip.WorldPosition - hand.WorldPosition).Magnitude < 0.3):toBe(true)
-			S.LoadoutService.devSetKit(p, "twin_jets")
-			task.wait(0.3)
-			expect(character:GetAttribute("CCWeaponModel")):toBe("twin_jets")
-			local miss0 = S.DiagnosticsService.getCount("event.WeaponModelMissing")
-			S.LoadoutService.devSetKit(p, "linecaster")
-			task.wait(0.2)
-			S.LoadoutService.devSetKit(p, "splash_pot")
-			task.wait(0.2)
-			S.LoadoutService.devSetKit(p, "linecaster")
-			task.wait(0.2)
-			expect(character:GetAttribute("CCWeaponModel")):toBe("missing")
-			expect(character:FindFirstChild("CCWeaponModel")):toBe(nil)
-			expect(S.DiagnosticsService.getCount("event.WeaponModelMissing")):toBe(miss0 + 2) -- once per kit
-			local inv0 = S.DiagnosticsService.getCount("event.WeaponModelInvalid")
-			S.LoadoutService.devSetKit(p, "popshot")
-			task.wait(0.2)
-			expect(character:GetAttribute("CCWeaponModel")):toBe("invalid")
-			expect(S.DiagnosticsService.getCount("event.WeaponModelInvalid")):toBe(inv0 + 1)
-			-- gameplay is unaffected by a missing model: the kit still fires
-			S.LoadoutService.devSetKit(p, "linecaster")
+			if existing then
+				existing.Parent = nil
+			end
+			local ok, failure = pcall(function()
+				local p = H.startSolo(S)
+				WeaponModels.resetReports()
+				S.LoadoutService.devSetKit(p, "sprayline")
+				task.wait(0.3)
+				local character = p.Character
+				expect(character:GetAttribute("CCWeaponModel")):toBe("sprayline")
+				local m = character:FindFirstChild("CCWeaponModel")
+				expect(m ~= nil):toBe(true)
+				for _, d in m:GetDescendants() do
+					if d:IsA("BasePart") then
+						expect(d.CanCollide or d.CanQuery or d.CanTouch or not d.Massless or d.Anchored):toBe(false)
+					end
+				end
+				task.wait(0.3)
+				local grip = m.Handle.Grip
+				local hand = character.RightHand.RightGripAttachment
+				expect((grip.WorldPosition - hand.WorldPosition).Magnitude < 0.3):toBe(true)
+				S.LoadoutService.devSetKit(p, "twin_jets")
+				task.wait(0.3)
+				expect(character:GetAttribute("CCWeaponModel")):toBe("twin_jets")
+				local miss0 = S.DiagnosticsService.getCount("event.WeaponModelMissing")
+				S.LoadoutService.devSetKit(p, "linecaster")
+				task.wait(0.2)
+				S.LoadoutService.devSetKit(p, "splash_pot")
+				task.wait(0.2)
+				S.LoadoutService.devSetKit(p, "linecaster")
+				task.wait(0.2)
+				expect(character:GetAttribute("CCWeaponModel")):toBe("missing")
+				expect(character:FindFirstChild("CCWeaponModel")):toBe(nil)
+				expect(S.DiagnosticsService.getCount("event.WeaponModelMissing")):toBe(miss0 + 2) -- once per kit
+				local inv0 = S.DiagnosticsService.getCount("event.WeaponModelInvalid")
+				S.LoadoutService.devSetKit(p, "popshot")
+				task.wait(0.2)
+				expect(character:GetAttribute("CCWeaponModel")):toBe("invalid")
+				expect(S.DiagnosticsService.getCount("event.WeaponModelInvalid")):toBe(inv0 + 1)
+				-- gameplay is unaffected by a missing model: the kit still fires
+				S.LoadoutService.devSetKit(p, "linecaster")
+				assets:Destroy()
+				S.LoadoutService.devSetKit(p, "sprayline")
+				task.wait(0.2)
+				expect(character:GetAttribute("CCWeaponModel")):toBe("missing")
+			end)
 			assets:Destroy()
-			S.LoadoutService.devSetKit(p, "sprayline")
-			task.wait(0.2)
-			expect(character:GetAttribute("CCWeaponModel")):toBe("missing")
+			if existing then
+				existing.Parent = ReplicatedStorage
+			end
 			H.stop(S)
+			if not ok then
+				error(failure)
+			end
 		end)
 	end)
 end
