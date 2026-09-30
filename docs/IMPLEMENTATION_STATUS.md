@@ -2,6 +2,11 @@
 
 Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Statuses follow GDD 17.1.
 
+**Current project status: CODE_READY_FOR_CODEX** (2026-09-29). The Phase 00–08 code, fixture and contract gates are
+met on desktop Studio evidence, and the handoff is `docs/CODEX_HANDOFF.md`. The game is not complete:
+- production maps, models, animations, UI, VFX and audio are Codex Phase 09;
+- the multi-client, eight-client, device, real-save and published tests listed in the handoff remain pending.
+
 | Phase | Title | Status | Latest evidence | Current blocker |
 |---|---|---|---|---|
 | 00 | Protect the project and establish truth | PASS_CODE | This file §Capabilities; `tools/verify.ps1` run 2026-09-29 | — |
@@ -13,7 +18,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | 05 | All seven main weapons | PASS_CODE | `docs/qa/phase-05.md` | Human playtest not run |
 | 06 | Core tactical tools | PASS_CODE (solo + real client) | `docs/qa/phase-06.md` | Teammate launch and target-death cases need 2 same-team clients (next multi-client session) |
 | 07 | Player-facing loop | PASS_CODE (wireframe, contract fixtures) | `docs/qa/phase-07.md` | Real DataStore save path BLOCKED (Studio API access off); FLOW-13 reconnect needs multi-client; physical devices BLOCKED |
-| 08 | Harden, profile, Codex handoff | NOT STARTED | — | — |
+| 08 | Harden, profile, Codex handoff | PASS_CODE → CODE_READY_FOR_CODEX | `docs/qa/phase-08.md`, `docs/CODEX_HANDOFF.md` | 8-client stress BLOCKED (memory); devices BLOCKED; real DataStore BLOCKED (Studio API access) |
 | 09 | Production assets, maps, UI (Codex) | NOT STARTED | — | Owned by Codex |
 | 10 | Claude verifies the actual game | NOT STARTED | — | Needs Phase 09 |
 

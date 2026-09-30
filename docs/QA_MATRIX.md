@@ -127,25 +127,36 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | NET-02 | Pure + Engine + Client | PASS | gap → exactly one bounded resync → exact state |
 | NET-03 | Engine + Client (single client, simulated disconnect by reset) | PASS (simulated) | real disconnect during snapshot needs multi-client: BLOCKED |
 | NET-04 | 2 real clients | PASS (2 clients) / 8 clients BLOCKED (memory) | same frozen state & results |
-| NET-05..08 | — | NOT RUN | |
+| NET-05 | Real client + dev net simulation | PASS (simulated) | one-way 25/75/150 ms + jitter 10-30 ms + 5 % unreliable loss (measured app RTT 0.115/0.198/0.35 s): 15/15 shots accepted each, 0 rejects, 0 duplicates (server accepted delta == sent), client paint hash == server hash, 0 handler errors. Real internet links NOT RUN |
+| NET-06 | Real client + dev net simulation | PASS (simulated) | 300 ms one-way (RTT 0.67-0.70 s): 15/15 accepted, hashes equal, "Connection delayed" shown and rate-limited (30 s), player never kicked (no latency kick path exists) |
+| NET-07 | Engine | PASS (bound) / moving-player rewind NOT RUN | rewind = one-way latency capped at 150 ms (0.1 s RTT -> 50 ms, 1.2 s -> 150 ms); full charge at max rewind still blocked by current thin cover; moving-player case needs 2 clients |
+| NET-08 | Real client | PASS (1 client) | resync requested mid-burst under fire: converged hash, no rejects; queue bounded by SnapshotReplayBufferMax; 8-client saturation BLOCKED (memory) |
 | SEC-01 | Build + Engine | PASS | |
-| SEC-05..08 | Pure | PASS (pure) | engine adversarial suite Phase 08 |
+| SEC-05 | Pure + Engine + real client (real remotes) | PASS | 11 garbage payload types x 5 handlers (engine) and 17 x 16 remotes from a real client: 0 handler errors, no state mutation, unknown kit/action/target rejected |
+| SEC-06 | Engine | PASS | NaN/inf vectors, non-unit aim, NaN time, 1e7 origin -> "invalid"; +40-stud origin -> "origin"; launch NaN/inf targets rejected; no state change |
+| SEC-07 | Engine | PASS | exact replay and older sequence -> "sequence"; +2 s future and -30 s ancient -> "timestamp"; exactly one accepted shot |
+| SEC-08 | Real client (real remotes) | PASS | floods of ~900 requests: rate limiter dropped 280 Action / 113 Ready, SelectLoadout, PaintResync, Launch, SettingsPatch / 97 ClientEvent; server frame max 23.5 ms; 0 handler errors |
 | SEC-09 | Engine | PASS | trail teleport step skipped |
 | SEC-02 | Engine | PASS | CFrame / extra keys / non-table / self / unknown id rejected; no position change |
 | SEC-03 | Engine | PASS | extra cost/damage keys rejected; meter < 100 refused; dry gadget free |
 | SEC-04 | Engine | PASS | dead and old-life casts/launches rejected; paint hash unchanged |
-| SEC-10 | — | NOT RUN (Phase 08) | |
+| SEC-10 | Build scan + Engine | PASS | tools/scan_client_surface.py over build/production.rbxlx (59 scripts, 37 client-readable): no credentials/webhooks/loadstring/asset-id requires/RemoteFunctions/debug commands (positive control detects planted items); remote surface == protocol list, no stray remotes |
 | DATA-01 | Engine (memory backend) | PASS (logic) / real DataStore save BLOCKED | Studio API access is disabled for this place ("Studio access to APIs is not allowed"); enable it (Game Settings > Security) to prove the published path |
 | DATA-02 | Engine (memory + real DataStore failure) | PASS | read failure -> usable defaults + notice, nothing written, later edit merges without overwriting the stored profile |
 | DATA-03 | Pure + Engine | PASS | newer schema read-only; invalid values repaired; concurrent-session change survives; patch whitelist |
 | DATA-04 | Engine | PASS | 21-patch burst -> 1 write; failed write reports "failed", keeps the change, later flush succeeds; leave/shutdown flush in code |
 | PERF-01 | Engine + Client (desktop Studio) | PASS (desktop) / mobile BLOCKED | stress_lab measurements in qa/phase-02.md |
-| PERF-02..05 | — | NOT RUN | |
-| OBS-01..03 | — | NOT RUN | |
+| PERF-02 | — | BLOCKED | eight clients need more free RAM (15.9 GB total, ~0.8 GB free with Studio open) |
+| PERF-03 | Perf (contract fixtures, solo) | PASS (desktop Studio, fixtures) | 20 rounds: memory after reset flat (rounds 3-7 mean 2457.0 MB vs 16-20 mean 2456.9 MB, Studio process), 287 Workspace instances every round, server frame p95 18 ms, send ~3.3 KB/s; per-round max ~190-207 ms is the map-load window (excluded by GDD 14.2) |
+| PERF-04 | — | BLOCKED | no physical mobile device / production content |
+| PERF-05 | Real client | PASS (palette + focus loss) / resize NOT RUN | 8 palette switches + focus loss under sustained fire: no stuck input or continuous action, Lua heap 3.5 -> 2.6 MB (peak +0.2 MB); renderer parts not measurable while the Studio viewport is hidden (RenderStepped paused); window resize cannot be driven |
+| OBS-01 | Engine | PASS | known-clock events -> milestones in seconds since SessionStarted (2.5, 10.25); missing milestones nil; unknown player nil |
+| OBS-02 | Engine | PASS | shotSummary separates invalid (2), legal rejections (1 cadence), accepted (3) with hits (2) and noVictim (1); attempts 6 |
+| OBS-03 | Engine | PASS | SessionEnded reason "left" or "kicked:<reason>"; client frame p95 attached only as correlation (causeInferred = false); unknown/invalid perf values nil |
 
 ## 18.6 Handoff and release
 
 | ID | Result |
 |---|---|
-| HANDOFF-01 | NOT RUN |
+| HANDOFF-01 | PASS (document review) — `docs/CODEX_HANDOFF.md`: exact commit reference, contracts, inventory, fixture evidence, pending real-content tests |
 | HANDOFF-02, FINAL-01..06 | NOT RUN (Phase 09/10) |
