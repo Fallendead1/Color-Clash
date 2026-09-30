@@ -7,7 +7,7 @@ verification afterwards (Phase 10).
 | Item | Value |
 |---|---|
 | Repository | https://github.com/Fallendead1/Color-Clash.git, branch `main` |
-| Code commit | recorded in section 7 of this file (it names the commit it was written against) |
+| Code commit | `2d0852a` (Phase 08 PASS_CODE); contract/handoff docs `1deba2c` |
 | Contracts | `docs/MAP_CONTRACT.md`, `docs/UI_CONTRACT.md`, `docs/ASSET_CONTRACT.md`; each is ContractVersion 1 |
 | Place | Color Clash (placeId 130101797221207) |
 | Rojo | `rojo serve default.project.json` (port 34872 in this setup). Production build: `production.project.json` excludes all `Dev` folders. |
@@ -108,7 +108,8 @@ Per-phase reports are in `docs/qa/phase-01.md` … `phase-08.md`. The complete m
 
 ## 7. Code commit for this handoff
 
-This file was written against the Phase 08 code commit shown by:
+The evidence here was produced on code commit **`2d0852a`**. The contracts and this handoff were first committed in
+`1deba2c`. To confirm, run:
 
 ```
 git log --oneline -3
