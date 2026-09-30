@@ -342,6 +342,7 @@ function CombatService.damageVictim(victim, amount: number, owner: Player?, atta
 		end
 		outcome = "applied"
 	end
+	diagnostics.count("Hit." .. (if victim.kind == "screen" then "screen" else outcome))
 	if owner and owner.Parent == Players and victim.kind ~= "screen" then
 		net.fire(owner, "DamageResult", {
 			k = if outcome == "shielded" then "Shielded" else "Hit",

@@ -99,6 +99,11 @@ return function(t)
 			assert(waitFor(function()
 				return S.RoundService.state() == "Results"
 			end, 20), "round " .. r .. ": no results")
+			-- PERF-03 baseline sampled at the end of Live (units in the key names)
+			local f = S.DiagnosticsService.percentiles("server.frameMs")
+			rec.frameMsP95 = f and math.floor(f.p95 * 10) / 10
+			rec.frameMsMax = f and math.floor(f.max * 10) / 10
+			rec.sendKbps = math.floor(Stats.DataSendKbps * 10) / 10
 			local res = S.RoundService.lastResults()
 			rec.outcome = res and res.outcome
 			rec.painted = res and res.total and (res.a + res.b) or 0
@@ -107,6 +112,8 @@ return function(t)
 				return st == "Intermission" or st == "Waiting" or st == "Countdown"
 			end, 20), "round " .. r .. ": no reset")
 			task.wait(0.3)
+			rec.memMbAfterReset = math.floor(Stats:GetTotalMemoryUsageMb() * 10) / 10
+			rec.instances = #Workspace:GetDescendants()
 			local c = S.AbilityService.counts()
 			if c.throwables + c.storms + c.screens ~= 0 or S.CombatService.projectileCount() ~= 0 then
 				problem(string.format("round %d: entities survived reset (thr %d storm %d scr %d proj %d)", r, c.throwables, c.storms, c.screens, S.CombatService.projectileCount()))
@@ -123,6 +130,27 @@ return function(t)
 		end
 		S.TeamService.setReadyServer(p, false)
 		summary.memDeltaMb = math.floor((Stats:GetTotalMemoryUsageMb() - mem0) * 10) / 10
+		-- leak check after warm-up: mean memory / instance count of the last five rounds vs rounds 3..7
+		local function mean(from, to, key)
+			local sum, n = 0, 0
+			for i = from, math.min(to, #summary.rounds) do
+				sum += summary.rounds[i][key]
+				n += 1
+			end
+			return if n > 0 then sum / n else 0
+		end
+		if #summary.rounds >= 10 then
+			summary.memEarlyMb = math.floor(mean(3, 7, "memMbAfterReset") * 10) / 10
+			summary.memLateMb = math.floor(mean(#summary.rounds - 4, #summary.rounds, "memMbAfterReset") * 10) / 10
+			summary.instancesEarly = math.floor(mean(3, 7, "instances"))
+			summary.instancesLate = math.floor(mean(#summary.rounds - 4, #summary.rounds, "instances"))
+			if summary.memLateMb - summary.memEarlyMb > 40 then
+				problem(string.format("memory grew %.1f MB after warm-up", summary.memLateMb - summary.memEarlyMb))
+			end
+			if summary.instancesLate - summary.instancesEarly > 200 then
+				problem(string.format("instances grew by %d after warm-up", summary.instancesLate - summary.instancesEarly))
+			end
+		end
 		summary.handlerErrors = 0
 		for name, n in S.DiagnosticsService.counters() do
 			if string.find(name, "RemoteHandlerError", 1, true) then

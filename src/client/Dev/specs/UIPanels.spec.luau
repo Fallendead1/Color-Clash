@@ -74,7 +74,7 @@ return function(t)
 					end
 				end
 				-- show every panel and the touch layer (one at a time for panels, since they are centred overlays)
-				local touch = viewport:FindFirstChild("TouchControls")
+				local touch = found["Touch.Root"]
 				if touch then
 					touch.Visible = true
 				end
@@ -105,7 +105,7 @@ return function(t)
 				waitFrames(1)
 				local touchKeys = {}
 				for k, inst in found do
-					if string.sub(k, 1, 6) == "Touch." then
+					if string.sub(k, 1, 6) == "Touch." and inst:IsA("GuiButton") then
 						table.insert(touchKeys, inst)
 						if not inside(inst) then
 							table.insert(problems, string.format("%dx%d %s off-screen", sz[1], sz[2], k))

@@ -15,6 +15,7 @@ local Credit = require(Shared.Combat.Credit)
 local Validate = require(Shared.Protocol.Validate)
 
 local MapLoader = require(script.Parent.Parent.Map.MapLoader)
+local WeaponModels = require(script.Parent.Parent.Presentation.WeaponModels)
 
 local CharacterService = {}
 
@@ -51,6 +52,12 @@ export type Life = {
 }
 
 local lives: { [Player]: Life } = {}
+local perfSamples: { [Player]: any } = {}
+
+-- Last client-reported performance sample (or nil). Correlation data only; never a cause of anything.
+function CharacterService.lastPerf(player: Player): any?
+	return perfSamples[player]
+end
 local lifeCounter = 0
 local net, diagnostics, team, loadout, paint, round, map, combat
 local barriers: { Instance } = {}
@@ -98,8 +105,12 @@ local function applyGroup(character: Model, teamId: number)
 end
 
 local function normalizedDescription(): HumanoidDescription
-	-- Default body, no accessories, unit scales: one fair hitbox for everyone (GDD 04.1).
-	local desc = Instance.new("HumanoidDescription")
+	-- One fair hitbox for everyone (GDD 04.1). Codex's athlete look (ASSET_CONTRACT: ReplicatedStorage.
+	-- ColorClashAssets.Character.AthleteDescription) supplies appearance only; the scales are always forced here.
+	local assets = game:GetService("ReplicatedStorage"):FindFirstChild("ColorClashAssets")
+	local charFolder = assets and assets:FindFirstChild("Character")
+	local authored = charFolder and charFolder:FindFirstChild("AthleteDescription")
+	local desc = if authored and authored:IsA("HumanoidDescription") then authored:Clone() else Instance.new("HumanoidDescription")
 	desc.HeightScale = 1
 	desc.WidthScale = 1
 	desc.DepthScale = 1
@@ -212,6 +223,8 @@ local function spawnAt(player: Player, cframe: CFrame, teamId: number, inMatch: 
 	loadout.fillTank(player)
 	character:SetAttribute("CCLifeId", life.lifeId)
 	character:SetAttribute("CCTeam", teamId)
+	-- presentation-only weapon model (Codex asset; absent => no model, gameplay unaffected)
+	WeaponModels.attach(character, loadout.kit(player).Id, diagnostics.event)
 	player:SetAttribute("CCLifeId", life.lifeId)
 	player:SetAttribute("CCAlive", true)
 	if combat then
@@ -273,8 +286,24 @@ function CharacterService:Start()
 			round.onPlayerJoined(p)
 		end)
 	end
+	-- the staged weapon model follows kit changes between rounds
+	local function watchKit(player: Player)
+		player:GetAttributeChangedSignal("CCWeapon"):Connect(function()
+			local l = lives[player]
+			if l and l.alive and l.character and l.character.Parent then
+				WeaponModels.attach(l.character, loadout.kit(player).Id, diagnostics.event)
+			end
+		end)
+	end
+	for _, p in Players:GetPlayers() do
+		watchKit(p)
+	end
+	Players.PlayerAdded:Connect(watchKit)
 	Players.PlayerRemoving:Connect(function(player)
 		lives[player] = nil
+		task.delay(5, function()
+			perfSamples[player] = nil -- kept briefly so the SessionEnded record can cite it
+		end)
 	end)
 	net.on("ClientEvent", 20, function(player, payload)
 		CharacterService.onClientEvent(player, payload)
@@ -297,7 +326,7 @@ end
 
 -- Client movement-state reports and milestones. Only whitelisted keys; values are advisory and re-validated.
 function CharacterService.onClientEvent(player: Player, payload: any)
-	if type(payload) ~= "table" or not Validate.oneOf(payload.k, { Move = true, PaintSynced = true, PaintHash = true, Active = true, Milestone = true }) then
+	if type(payload) ~= "table" or not Validate.oneOf(payload.k, { Move = true, PaintSynced = true, PaintHash = true, Active = true, Milestone = true, Ping = true, Perf = true }) then
 		diagnostics.count("ClientEvent.rejected")
 		return
 	end
@@ -329,6 +358,30 @@ function CharacterService.onClientEvent(player: Player, payload: any)
 		end
 	elseif k == "Active" then
 		team.touch(player)
+	elseif k == "Ping" then
+		-- application-level round trip (includes server processing and any queueing), echoed as-is
+		if Validate.shape(payload, { k = true, t = true }, 2) and Validate.number(payload.t, -1e9, 1e12) then
+			net.fire(player, "ActionResult", { k = "Pong", t = payload.t })
+		end
+	elseif k == "Perf" then
+		-- client-reported performance sample (labelled as such); any unknown value stays nil (GDD 15)
+		if not Validate.shape(payload, { k = true, p50 = true, p95 = true, hitches = true, mem = true, win = true }, 6) then
+			return
+		end
+		local function num(v, max)
+			return if Validate.number(v, 0, max) then v else nil
+		end
+		local sample = {
+			player = player.UserId,
+			source = "client-reported",
+			windowS = num(payload.win, 120),
+			frameMsP50 = num(payload.p50, 10000),
+			frameMsP95 = num(payload.p95, 10000),
+			hitches = num(payload.hitches, 100000),
+			memMb = num(payload.mem, 100000),
+		}
+		perfSamples[player] = sample
+		diagnostics.event("PerfSample", sample)
 	elseif k == "Milestone" then
 		if Validate.shape(payload, { k = true, name = true }, 2) and Validate.oneOf(payload.name, { FirstMove = true, FirstPaint = true, FirstGlide = true, ClientReady = true }) then
 			diagnostics.event(payload.name, { player = player.UserId })

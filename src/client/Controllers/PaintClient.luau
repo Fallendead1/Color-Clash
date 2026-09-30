@@ -164,6 +164,10 @@ function PaintClient.meta()
 	return meta
 end
 
+function PaintClient.mapVersion(): number?
+	return mapVersion
+end
+
 function PaintClient.isSynced(): boolean
 	return synced
 end

@@ -209,6 +209,7 @@ function Wireframe.build(): ScreenGui
 	-- Touch controls (only shown on touch devices; landscape, above/beside readouts)
 	local touch = frame(gui, "Touch", UDim2.fromScale(1, 1), UDim2.new(), BG, 1)
 	touch.Name = "TouchControls"
+	key(touch, "Touch.Root")
 	touch.Visible = false
 	local function tbtn(name, uiKey, text, px, pos)
 		local b = key(button(touch, name, text, UDim2.fromOffset(px, px), pos), uiKey)
@@ -253,8 +254,8 @@ function Wireframe.build(): ScreenGui
 	local results = panel(gui, "Results", "Results.Root", UDim2.fromScale(0.8, 0.84))
 	key(label(results, "Outcome", "", UDim2.fromScale(0.9, 0.1), UDim2.fromScale(0.05, 0.03), 40), "Results.Outcome")
 	local rbar = key(frame(results, "Coverage", UDim2.fromScale(0.9, 0.05), UDim2.fromScale(0.05, 0.15), BG), "Results.Coverage")
-	frame(rbar, "A", UDim2.fromScale(0, 1), UDim2.new(), Color3.fromRGB(255, 140, 0))
-	frame(rbar, "B", UDim2.fromScale(0, 1), UDim2.fromScale(1, 0), Color3.fromRGB(0, 170, 255))
+	key(frame(rbar, "A", UDim2.fromScale(0, 1), UDim2.new(), Color3.fromRGB(255, 140, 0)), "Results.CoverageFillA")
+	key(frame(rbar, "B", UDim2.fromScale(0, 1), UDim2.fromScale(1, 0), Color3.fromRGB(0, 170, 255)), "Results.CoverageFillB")
 	key(label(results, "CoverageText", "", UDim2.fromScale(0.9, 0.06), UDim2.fromScale(0.05, 0.21), 22), "Results.CoverageText")
 	local stats = key(scroll(results, "Stats", UDim2.fromScale(0.9, 0.62), UDim2.fromScale(0.05, 0.3)), "Results.Stats")
 	local strow = key(label(stats, "StatRowTemplate", "", UDim2.new(1, -10, 0, 36), UDim2.new(), 18), "Results.StatRowTemplate")

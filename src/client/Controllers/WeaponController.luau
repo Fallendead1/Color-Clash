@@ -33,6 +33,7 @@ local pushing = false
 local muzzleLeft = false
 local dashUntil = 0
 local dashConstraint: LinearVelocity? = nil
+local sendListeners: { (string) -> () } = {}
 
 local function kit()
 	local id = player:GetAttribute("CCWeapon") or Weapons.Default
@@ -84,6 +85,9 @@ local function send(action: string, origin: Vector3?, dir: Vector3?): number
 	})
 	stats.sent += 1
 	stats.byAction[action] = (stats.byAction[action] or 0) + 1
+	for _, fn in sendListeners do
+		task.spawn(fn, action)
+	end
 	return seq
 end
 
@@ -367,6 +371,17 @@ local function step()
 	elseif fam == "roller" or fam == "brush" then
 		melee(k)
 	end
+end
+
+-- Tests: send one sequenced action through the real remote with this controller's sequence (network tests that
+-- must not depend on the viewport rendering). Returns the sequence number.
+function WeaponController.sendForTests(action: string, origin: Vector3, dir: Vector3): number
+	return send(action, origin, dir)
+end
+
+-- Presentation listeners (sounds/animations for the local player's own actions).
+function WeaponController.onSend(fn: (string) -> ())
+	table.insert(sendListeners, fn)
 end
 
 function WeaponController.stats()

@@ -16,6 +16,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Rules = require(Shared.Movement.Rules)
 
 local MovementController = {}
+MovementController.mantleListeners = {} :: { () -> () }
 
 local MV = GameConfig.Movement
 local player = Players.LocalPlayer
@@ -75,6 +76,10 @@ local function setState(s: string)
 			task.spawn(fn, s, old)
 		end
 	end
+end
+
+function MovementController.onMantle(fn: () -> ())
+	table.insert(MovementController.mantleListeners, fn)
 end
 
 function MovementController.onState(fn: (string, string) -> ())
@@ -260,6 +265,9 @@ local function tryMantle(r: BasePart, h: Humanoid): boolean
 	end
 	h:ChangeState(Enum.HumanoidStateType.Landed)
 	setState("Standing")
+	for _, fn in MovementController.mantleListeners do
+		task.spawn(fn)
+	end
 	return true
 end
 

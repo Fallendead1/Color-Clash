@@ -2,6 +2,7 @@
 -- Unknown values stay nil (never a fake zero). Server-authoritative milestones use server time.
 
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 
 local DiagnosticsService = {}
 
@@ -15,7 +16,12 @@ local timings: { [string]: { number } } = {}
 local sessionId = HttpService:GenerateGUID(false)
 
 function DiagnosticsService:Init(_ctx) end
-function DiagnosticsService:Start() end
+function DiagnosticsService:Start()
+	-- server frame time (ms), bounded ring: baseline for soaks and load tests
+	RunService.Heartbeat:Connect(function(dt)
+		DiagnosticsService.time("server.frameMs", dt * 1000)
+	end)
+end
 
 function DiagnosticsService.sessionId(): string
 	return sessionId
@@ -87,6 +93,72 @@ function DiagnosticsService.percentiles(key: string): { n: number, p50: number, 
 		return sorted[math.clamp(math.ceil(p * #sorted), 1, #sorted)]
 	end
 	return { n = #sorted, p50 = at(0.5), p95 = at(0.95), max = sorted[#sorted] }
+end
+
+-- Tests: record an event at a known server time (OBS-01 known-clock checks).
+function DiagnosticsService.eventAt(name: string, data: { [string]: any }?, t: number)
+	DiagnosticsService.event(name, data)
+	events[eventHead].t = t
+end
+
+-- Milestones for one player in seconds since SessionStarted (server time). Missing milestones stay nil.
+function DiagnosticsService.milestones(userId: number): { [string]: any }
+	local first: { [string]: number } = {}
+	for _, e in events do
+		if e and e.data and e.data.player == userId and first[e.name] == nil then
+			first[e.name] = e.t
+		end
+	end
+	local t0 = first.SessionStarted
+	local function since(name)
+		return if t0 and first[name] then first[name] - t0 else nil
+	end
+	return {
+		unit = "s",
+		sessionStarted = t0,
+		clientReady = since("ClientReady"),
+		firstMove = since("FirstMove"),
+		firstPaint = since("FirstPaint"),
+		firstGlide = since("FirstGlide"),
+	}
+end
+
+-- Attack outcome summary with explicit denominators (OBS-02). Invalid requests (malformed, replayed, stale,
+-- impossible origin, wrong life) are separated from legal rejections (cadence, dry tank, base, state) and from
+-- normal combat outcomes (hit, shielded, blocked, no victim). "noVictim" includes misses AND intentional paint shots.
+local INVALID = { shape = true, invalid = true, sequence = true, timestamp = true, origin = true, life = true, action = true, family = true, unavailable = true }
+function DiagnosticsService.shotSummary(): { [string]: any }
+	local accepted, invalid, legal = 0, 0, 0
+	local byReason = {}
+	for name, n in counters do
+		local w = string.match(name, "^ShotAccepted%.(.+)$")
+		if w then
+			accepted += n
+		end
+		local r = string.match(name, "^ShotRejected%.(.+)$")
+		if r then
+			byReason[r] = n
+			if INVALID[r] then
+				invalid += n
+			else
+				legal += n
+			end
+		end
+	end
+	local hits = counters["Hit.applied"] or 0
+	local shielded = counters["Hit.shielded"] or 0
+	local blocked = (counters["Shot.blockedByBase"] or 0) + (counters["Shot.blockedByScreen"] or 0)
+	return {
+		attempts = accepted + invalid + legal,
+		accepted = accepted,
+		rejectedInvalid = invalid,
+		rejectedLegal = legal,
+		byReason = byReason,
+		hits = hits,
+		shielded = shielded,
+		blocked = blocked,
+		noVictim = math.max(0, accepted - hits - shielded - blocked),
+	}
 end
 
 function DiagnosticsService.resetForTests()

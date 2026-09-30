@@ -25,6 +25,7 @@ type Record = {
 local records: { [Player]: Record } = {}
 local net, diagnostics, round
 local character, paintService -- live scoreboard stats (read only)
+local kickReasons: { [Player]: string } = {}
 local tieSide = 1
 local rosterDirty = false
 
@@ -58,7 +59,8 @@ function TeamService:Start()
 	Players.PlayerRemoving:Connect(function(player)
 		records[player] = nil
 		rosterDirty = true
-		diagnostics.event("SessionEnded", { player = player.UserId, reason = "left" })
+		diagnostics.event("SessionEnded", TeamService.sessionEndData(player))
+		kickReasons[player] = nil
 	end)
 	net.on("Ready", GameConfig.Net.ReadyRequestsPerSecond, function(player, payload)
 		local rec = records[player]
@@ -90,6 +92,29 @@ function TeamService:Start()
 			end
 		end
 	end)
+end
+
+-- Why a session ended (GDD 15.1, OBS-03): the KNOWN exit fact ("left" or an explicit server kick reason) is kept
+-- separate from performance data, which is attached only as a labelled correlation and never as the cause.
+function TeamService.sessionEndData(player: Player): { [string]: any }
+	local perf = character and character.lastPerf(player)
+	return {
+		player = player.UserId,
+		reason = kickReasons[player] or "left",
+		causeInferred = false,
+		lastClientFrameMsP95 = perf and perf.frameMsP95, -- correlation only; nil when unknown
+	}
+end
+
+-- The only way server code removes a player: records the explicit reason first. (No latency-based kicks exist.)
+function TeamService.kick(player: Player, reason: string)
+	kickReasons[player] = "kicked:" .. reason
+	player:Kick(reason)
+end
+
+-- Tests: mark a pending kick reason without kicking.
+function TeamService.devMarkKick(player: Player, reason: string?)
+	kickReasons[player] = if reason then "kicked:" .. reason else nil
 end
 
 -- Meaningful input from the player (actions, ready changes, movement reported by the character service).

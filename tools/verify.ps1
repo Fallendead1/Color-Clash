@@ -35,6 +35,11 @@ Step 'production excludes dev code' {
     }
 }
 
+Step 'client surface scan (SEC-10)' {
+    $py = if (Test-Path tools/.venv/Scripts/python.exe) { 'tools/.venv/Scripts/python.exe' } else { 'python' }
+    & $py tools/scan_client_surface.py build/production.rbxlx
+}
+
 if ($failed.Count -gt 0) { Write-Host "VERIFY FAILED: $($failed -join ', ')" -ForegroundColor Red; exit 1 }
 Write-Host 'VERIFY PASSED' -ForegroundColor Green
 exit 0

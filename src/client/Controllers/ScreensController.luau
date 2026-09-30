@@ -196,11 +196,7 @@ local function refreshStaging()
 	ui.setVisible("Staging.Unready", ready)
 	ui.setText("Staging.Status", stagingStatus())
 	ui.setVisible("HUD.Root", inMatch == true)
-	ui.setVisible("TouchControlsRoot", false)
-	local tc = ui.root() and ui.root():FindFirstChild("TouchControls")
-	if tc then
-		tc.Visible = inMatch == true and input.device() == "Touch"
-	end
+	ui.setVisible("Touch.Root", inMatch == true and input.device() == "Touch")
 end
 
 local function refreshHudTimer()
@@ -275,7 +271,7 @@ local function showResults(r)
 		local bar = ui.get("Results.Coverage")
 		if bar then
 			local fa, fb = r.a / r.total, r.b / r.total
-			local A, B = bar:FindFirstChild("A"), bar:FindFirstChild("B")
+			local A, B = ui.get("Results.CoverageFillA"), ui.get("Results.CoverageFillB")
 			if A and B then
 				A.Size = UDim2.fromScale(fa, 1)
 				B.Size = UDim2.fromScale(fb, 1)
@@ -417,15 +413,61 @@ function ScreensController.start(deps)
 		end
 	end)
 
+	-- Application round trip every 2 s (Ping/Pong through the real remotes, so it includes server queueing); an
+	-- unanswered ping counts as a slow sample. The larger of that and the engine ping drives the notice.
+	local pingSentAt: number? = nil
+	remotes.ActionResult.OnClientEvent:Connect(function(msg)
+		if type(msg) == "table" and msg.k == "Pong" and type(msg.t) == "number" and msg.t == pingSentAt then
+			local rtt = os.clock() - msg.t
+			pingSentAt = nil
+			player:SetAttribute("CCRtt", math.floor(rtt * 1000) / 1000)
+			local ok, enginePing = pcall(function()
+				return player:GetNetworkPing()
+			end)
+			ScreensController.checkConnection(math.max(rtt, if ok and type(enginePing) == "number" then enginePing else 0))
+		end
+	end)
 	task.spawn(function()
 		while true do
 			task.wait(2)
-			local ok, ping = pcall(function()
-				return player:GetNetworkPing()
-			end)
-			if ok and type(ping) == "number" then
-				ScreensController.checkConnection(ping)
+			if pingSentAt and os.clock() - pingSentAt > 1 then
+				ScreensController.checkConnection(os.clock() - pingSentAt)
 			end
+			pingSentAt = os.clock()
+			remotes.ClientEvent:FireServer({ k = "Ping", t = pingSentAt })
+		end
+	end)
+	-- Client performance sample every 10 s (labelled client-reported on the server). No frames observed => nil.
+	local frames: { number } = {}
+	game:GetService("RunService").RenderStepped:Connect(function(dt)
+		if #frames < 2000 then
+			table.insert(frames, dt * 1000)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(10)
+			local sample: { [string]: any } = { k = "Perf", win = 10 }
+			if #frames > 0 then
+				table.sort(frames)
+				sample.p50 = frames[math.ceil(#frames * 0.5)]
+				sample.p95 = frames[math.ceil(#frames * 0.95)]
+				local hitches = 0
+				for _, ms in frames do
+					if ms > 100 then
+						hitches += 1
+					end
+				end
+				sample.hitches = hitches
+			end
+			local okMem, mem = pcall(function()
+				return game:GetService("Stats"):GetTotalMemoryUsageMb()
+			end)
+			if okMem then
+				sample.mem = mem
+			end
+			table.clear(frames)
+			remotes.ClientEvent:FireServer(sample)
 		end
 	end)
 

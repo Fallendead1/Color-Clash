@@ -27,6 +27,7 @@ local WeaponController = require(Controllers.WeaponController)
 local TacticalMapController = require(Controllers.TacticalMapController)
 local SettingsController = require(Controllers.SettingsController)
 local ScoreboardController = require(Controllers.ScoreboardController)
+local PresentationController = require(Controllers.PresentationController)
 
 InputController.start()
 UIController.start(InputController)
@@ -62,6 +63,7 @@ WeaponController.start({
 })
 TacticalMapController.start({ ui = UIController, input = InputController, paint = PaintClient, remotes = remotes })
 ScoreboardController.start({ ui = UIController, input = InputController, remotes = remotes })
+PresentationController.start({ remotes = remotes, weapon = WeaponController, movement = MovementController })
 SettingsController.start({
 	ui = UIController,
 	input = InputController,

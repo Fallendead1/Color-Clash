@@ -23,9 +23,12 @@ function Charger.init(deps)
 end
 
 -- Latency-bounded rewind (never more than 150 ms; never an arbitrary client timestamp).
+local DevGate = require(script.Parent.Parent.DevGate)
+
+-- One-way latency estimate, capped (GDD 06.2). DevGate "RewindPingSeconds" substitutes the measured RTT in tests.
 local function rewindFor(player: Player): number
 	local ok, ping = pcall(function()
-		return player:GetNetworkPing()
+		return DevGate.get("RewindPingSeconds", nil) or player:GetNetworkPing()
 	end)
 	local oneWay = if ok and type(ping) == "number" then ping / 2 else 0
 	return math.clamp(oneWay, 0, GameConfig.Combat.MaxRewindSeconds)
