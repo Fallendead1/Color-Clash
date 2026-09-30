@@ -84,11 +84,19 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | WEAPON-05 | Engine | PASS | volley capped 55 |
 | WEAPON-06 | Engine | PASS | sweep 32, spam bounded, push exclusive |
 | WEAPON-07 | Engine | PASS | direct 70 xor splash |
-| WEAPON-08 | Engine | PASS | all classes accepted and blocked by cover (screens/shields: Phase 06) |
+| WEAPON-08 | Engine | PASS | all classes accepted and blocked by cover; enemy screens block projectiles, beams and blasts (engine:Tactical) |
 | WEAPON-09 | Perf (stress_lab) | MEASURED | matrix in qa/phase-05.md; human playtest NOT RUN |
 
-| ABIL-01 (formula), ABIL-04 | Pure | PASS (pure) | |
-| ABIL-02, 03, 05..10 | — | NOT RUN | |
+| ABIL-01 | Engine | PASS | paid at release, fuse 1.2 s ±0.12, 70 / falloff / 0, one result per victim, duplicate and second-can refused, cover blocks |
+| ABIL-02 | Engine + real client | PASS | in-base and inside-geometry placements free; legal placement atomic (-55); interval; replacement removes the old part; 5 s lifetime |
+| ABIL-03 | Engine | PASS | destroying Popshot shot consumed (4 x 70); no blocker left (raycast clear, next shot hits); own screen ignored; enemy screen blocks beam and blast |
+| ABIL-04 | Pure + Engine | PASS | own floor 0, walls 0, Color Burst paint 0, neutral floor > 0 within 6/s |
+| ABIL-05 | Engine | PASS | death in preparation: cancelled, meter already spent, no refund; after release: burst still resolves |
+| ABIL-06 | Engine | PASS | canopy blocks rain paint and damage; two overlapping storms, <= 1 tick of 5 per 0.5 s; wall beacon fizzles with cue; no meter |
+| ABIL-07 | Engine + real client (Base) | PASS (Base) / teammate NOT RUN | channel 1.0 s, transit invulnerable, arrival 2.0 s at a validated spawn, 8 s cooldown; real client via Launch remote 2.10 s; teammate launch needs 2 same-team clients |
+| ABIL-08 | Engine | PASS | damage / >1 stud movement / attack cancel the channel; no departure, no cooldown; 1.5 s recent-damage rule |
+| ABIL-09 | Engine (in-transit) | PASS (in-transit fallback) / target death NOT RUN | blocked frozen landing -> validated friendly spawn, cooldown retained; pre-departure target death needs a teammate client |
+| ABIL-10 | Engine | PASS | round end with storm, screen, can in flight and launch channel: all cleared, nothing resolves later, no screen parts left |
 
 ## 18.4 UI, maps and content
 
@@ -98,7 +106,7 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | UI-02 | — | BLOCKED | real multi-touch unavailable (no touch injection/device) |
 | UI-03 | Engine | PASS (server) | one confirmed selection, locked live; client Equip double-submit guard in UIController |
 | UI-04..10 | — | NOT RUN | |
-| MAP-01 | — | NOT RUN | tactical map Phase 06 |
+| MAP-01 | Pure + Engine + real client | PASS | projection totals == grid totals on server and client; 0 stacked pixels; base floors absent |
 | MAP-02 | Pure + Studio | PASS (fixture iterations) | duplicate id, budget, stacked scoring, hidden floor rejected |
 | MAP-03 | Studio | PASS (fixtures) | paint_lab/stress_lab spawns, clearance, sightline |
 | MAP-04 | — | NOT RUN | |
@@ -116,7 +124,10 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | SEC-01 | Build + Engine | PASS | |
 | SEC-05..08 | Pure | PASS (pure) | engine adversarial suite Phase 08 |
 | SEC-09 | Engine | PASS | trail teleport step skipped |
-| SEC-02..04, 10 | — | NOT RUN (Phase 06/08) | |
+| SEC-02 | Engine | PASS | CFrame / extra keys / non-table / self / unknown id rejected; no position change |
+| SEC-03 | Engine | PASS | extra cost/damage keys rejected; meter < 100 refused; dry gadget free |
+| SEC-04 | Engine | PASS | dead and old-life casts/launches rejected; paint hash unchanged |
+| SEC-10 | — | NOT RUN (Phase 08) | |
 | DATA-01..04 | — | NOT RUN | Phase 07 |
 | PERF-01 | Engine + Client (desktop Studio) | PASS (desktop) / mobile BLOCKED | stress_lab measurements in qa/phase-02.md |
 | PERF-02..05 | — | NOT RUN | |

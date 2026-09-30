@@ -98,3 +98,24 @@ GDD values stay authoritative unless a decision here changes them.
 - **Consequence:** Floors beneath raised structures must be physically closed (the fixture adds a solid ramp fill) or
   the map is rejected. Codex's MAP_CONTRACT will state this. A 0.5-thick cover masks the two cell columns it intrudes on.
 - **Affected tests:** MAP-02, MAP-04, PAINT-04, CONTENT-01.
+
+## D-011 — What damages a Paint Screen; how a launch transit is represented
+
+- **Decision (screen damage):**
+  - A direct projectile or beam hit on an enemy screen applies that shot's direct damage and consumes the shot. For
+    example, Popshot deals 70, a Splash Pot volley deals 55 once, and a Linecaster beam deals its charged damage.
+  - Gadget and ultimate blasts apply their normal falloff, measured to the nearest point of the screen.
+  - Roller fans, roll contact and brush sweeps are blocked by the screen, like any cover, but do not damage it.
+  - A thrown capsule stuck to an enemy screen resumes falling if that screen is destroyed before the fuse ends.
+- **Reason:** GDD 08.1 gives the screen 250 health and says the destroying shot is consumed. It does not list which
+  attacks damage the screen. These rules reuse each weapon's existing damage value; no new number is invented.
+- **Decision (Team Launch transit):**
+  - During the 1 s transit the character stays anchored at the departure point.
+  - It cannot act and cannot be damaged (`life.launching`), then the server teleports it to the frozen landing.
+  - Enemies see the landing marker cue for the whole transit.
+  - The landing search tries the teammate's feet, then rings at 3 and 6 studs. Each spot needs a floor facing up, is
+    not inside an enemy base or out of bounds, and must fit a 2.6 × 5.4 × 2.6 clearance box.
+  - The in-transit fallback picks a friendly spawn that is clear of geometry.
+- **Reason:** GDD 08.4 defines the timing and the rules, not the presentation. Codex supplies the transit/landing art
+  on top of these cues.
+- **Affected tests:** ABIL-03, ABIL-07, ABIL-09, WEAPON-08 (screens).

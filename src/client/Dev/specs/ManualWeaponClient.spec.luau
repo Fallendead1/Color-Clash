@@ -57,6 +57,28 @@ return function(t)
 			player:SetAttribute("CCWeaponDiag", string.format("charge release=%d cancel=%d", (st.ChargeRelease or 0) - rel0, (st.ChargeCancel or 0) - can0))
 			expect((st.ChargeRelease or 0) - rel0):toBe(0)
 			expect((st.ChargeCancel or 0) - can0):toBe(2)
+		elseif scenario == "gadget" then
+			-- kit lane_roller (Paint Screen), placed at "0,100,-4,1,0" outside the base, ultimate meter below 100
+			C.CameraController.faceDirection(Vector3.new(1, 0, 0))
+			task.wait(0.3)
+			local folder = workspace.ColorClashArena:WaitForChild("Screens" .. (if player:GetAttribute("CCTeam") == 1 then "A" else "B"), 5)
+			local before = #folder:GetChildren()
+			local st = C.WeaponController.stats().byAction
+			local g0, u0 = st.Gadget or 0, st.Ultimate or 0
+			C.InputController.press("Gadget", true)
+			C.InputController.press("Gadget", false)
+			local t0 = os.clock()
+			while #folder:GetChildren() == before and os.clock() - t0 < 2 do
+				task.wait(0.05)
+			end
+			C.InputController.press("Ultimate", true) -- meter not full: the client does not even send
+			C.InputController.press("Ultimate", false)
+			task.wait(0.1)
+			st = C.WeaponController.stats().byAction
+			player:SetAttribute("CCWeaponDiag", string.format("gadget sent=%d ult sent=%d screens=%d", (st.Gadget or 0) - g0, (st.Ultimate or 0) - u0, #folder:GetChildren()))
+			expect((st.Gadget or 0) - g0):toBe(1)
+			expect(#folder:GetChildren()):toBe(before + 1) -- the server placed the replicated screen
+			expect((st.Ultimate or 0) - u0):toBe(0)
 		else
 			error("unknown scenario " .. tostring(scenario))
 		end

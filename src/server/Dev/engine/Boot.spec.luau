@@ -7,7 +7,7 @@ return function(t)
 	describe("Boot", function()
 		it("starts every service exactly once", function()
 			expect(game.ServerScriptService:GetAttribute("ColorClashServerStarted")):toBe(true)
-			expect(game.ServerScriptService:GetAttribute("ColorClashServices")):toBe(10)
+			expect(game.ServerScriptService:GetAttribute("ColorClashServices")):toBe(11)
 			local net = game.ReplicatedStorage:FindFirstChild("ColorClashNet")
 			expect(net ~= nil):toBe(true)
 			local names = {}

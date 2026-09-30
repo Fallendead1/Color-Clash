@@ -11,7 +11,7 @@ Milestone target of this pass: **CODE_READY_FOR_CODEX** (not game complete). Sta
 | 03 | Movement, camera, tank, survivability | PASS_CODE (desktop, keyboard/mouse) | `docs/qa/phase-03.md` | UI-02 multi-touch BLOCKED; MOVE-06/08 in Phase 05 |
 | 04 | First playable vertical slice | PASS_CODE (8-client item BLOCKED) | `docs/qa/phase-04.md` | 8-client test needs more free RAM (15.9 GB total, 0.8 GB free) |
 | 05 | All seven main weapons | PASS_CODE | `docs/qa/phase-05.md` | Human playtest not run |
-| 06 | Core tactical tools | NOT STARTED | — | — |
+| 06 | Core tactical tools | PASS_CODE (solo + real client) | `docs/qa/phase-06.md` | Teammate launch and target-death cases need 2 same-team clients (next multi-client session) |
 | 07 | Player-facing loop | NOT STARTED | — | — |
 | 08 | Harden, profile, Codex handoff | NOT STARTED | — | — |
 | 09 | Production assets, maps, UI (Codex) | NOT STARTED | — | Owned by Codex |

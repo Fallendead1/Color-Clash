@@ -355,6 +355,14 @@ function CombatService.damageVictim(victim, amount: number, owner: Player?, atta
 end
 local damageVictim = CombatService.damageVictim
 
+-- A direct hit on an enemy Paint Screen (one application per attack id, like any victim).
+function CombatService.hitScreen(sc, amount: number, owner: Player?, attackId: string, weaponId: string)
+	diagnostics.count("Shot.blockedByScreen")
+	if amount > 0 then
+		damageVictim({ kind = "screen", screen = sc, key = sc.part }, amount, owner, attackId, weaponId)
+	end
+end
+
 -- Feet position of a victim at `rewindSeconds` ago (players only; capped history; GDD 06.2).
 local function feetAt(p: Player, life, rewindSeconds: number): Vector3
 	local root = life.root
@@ -479,7 +487,7 @@ local drip = CombatService.drip
 -- Projectiles (swept; never Touched)
 ---------------------------------------------------------------------------------------------------------------
 
--- spec: owner, team, attackId, weapon, origin, velocity, gravity, range, damage?, paintRadius?, dripRadius?,
+-- spec: owner, team, attackId, weapon, origin, velocity, gravity, range, damage?, screenDamage?, paintRadius?, dripRadius?,
 --       dripSpacing?, onImpact?(p, kind, worldHit, victim), onExpire?(p), ignoreVictims?, radius?
 function CombatService.spawnProjectile(spec)
 	if #projectiles >= CB.MaxActiveProjectiles then
@@ -498,6 +506,7 @@ function CombatService.spawnProjectile(spec)
 		traveled = 0,
 		range = spec.range,
 		damage = spec.damage,
+		screenDamage = spec.screenDamage, -- damage to an enemy Paint Screen when it differs from `damage`
 		paintRadius = spec.paintRadius,
 		dripRadius = spec.dripRadius,
 		dripSpacing = spec.dripSpacing,
@@ -585,6 +594,14 @@ local function stepProjectile(p, dt: number): boolean
 	if kind == "base" then
 		diagnostics.count("Shot.blockedByBase")
 		return true
+	end
+	if kind == "world" and abilities then
+		-- an enemy Paint Screen absorbs the shot: it takes the hit and the shot is consumed (GDD 08.1, ABIL-03)
+		local sc = abilities.screenForPart(worldHit.Instance)
+		if sc then
+			CombatService.hitScreen(sc, p.screenDamage or p.damage or 0, p.owner, p.attackId, p.weapon)
+			return true
+		end
 	end
 	if p.onImpact then
 		return p.onImpact(p, kind, if kind == "world" then worldHit else nil, bestVictim) ~= false
@@ -753,7 +770,15 @@ function CombatService.handleAction(player: Player, payload: any)
 	if OFFENSIVE[a] and inAnyBase(payload.o) then
 		return reject(player, payload, "base") -- players must leave the protected base to attack (GDD 06.4)
 	end
-	-- 6. dispatch
+	-- 6. ability state: launch transit blocks everything, a throw preparation locks weapon firing, and an attack
+	-- during a launch channel cancels the channel (GDD 08.3, 08.4)
+	if abilities then
+		local blocked = abilities.gate(player, a)
+		if blocked then
+			return reject(player, payload, blocked)
+		end
+	end
+	-- 7. dispatch
 	if a == "Gadget" or a == "Ultimate" then
 		if not abilities then
 			return reject(player, payload, "unavailable")
@@ -786,6 +811,7 @@ function CombatService:Init(ctx)
 		round = round,
 		team = team,
 		combat = CombatService,
+		abilities = abilities,
 	}
 	for _, m in CombatFolder:GetChildren() do
 		if m:IsA("ModuleScript") then

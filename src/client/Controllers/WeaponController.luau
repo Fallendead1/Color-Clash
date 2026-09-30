@@ -13,6 +13,7 @@ local Weapons = require(Shared.Config.Weapons)
 local GameConfig = require(Shared.Config.GameConfig)
 local Ballistics = require(Shared.Combat.Ballistics)
 local Strings = require(Shared.UI.Strings)
+local Abilities = require(Shared.Config.Abilities)
 
 local WeaponController = {}
 
@@ -308,6 +309,22 @@ local function onAction(action: string, down: boolean, forced: string?)
 		end
 	elseif action == "Glide" and down and charging then
 		chargeEnd(k, "glide") -- gliding cancels the stored charge
+	elseif action == "Gadget" and down and canAct() then
+		local g = Abilities.Gadgets[k.Gadget]
+		if predictedPaint() + 1e-6 < g.Cost then
+			dryCue()
+			return
+		end
+		send("Gadget") -- the server charges at release (can) or placement (screen); nothing is predicted
+		callout(g.DisplayName)
+	elseif action == "Ultimate" and down and canAct() then
+		local u = Abilities.Ultimates[k.Ultimate]
+		if (hud.resource().ult or 0) < GameConfig.Ultimate.Max - 1e-6 then
+			callout(u.DisplayName .. " not ready")
+			return
+		end
+		send("Ultimate")
+		callout(u.DisplayName .. "!")
 	end
 end
 

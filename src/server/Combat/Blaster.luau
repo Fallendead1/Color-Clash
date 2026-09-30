@@ -60,6 +60,7 @@ function Blaster.handle(player: Player, payload, kit, life, s)
 		gravity = kit.Gravity,
 		range = kit.Range,
 		radius = 0.35,
+		screenDamage = kit.DirectDamage,
 		onImpact = function(p, kind, worldHit, victim)
 			if kind == "victim" then
 				Blaster.burst(player, teamId, kit, p.pos, Vector3.new(0, 1, 0), victim, attackId)

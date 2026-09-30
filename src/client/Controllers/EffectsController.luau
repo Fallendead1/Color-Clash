@@ -218,6 +218,47 @@ function EffectsController.burst(position: Vector3, teamId: number)
 	end
 end
 
+-- Functional warning zones (wireframe presentation; Codex replaces the look): a flat disc on the floor for `seconds`.
+local zones: { BasePart } = {}
+function EffectsController.zone(name: string, center: Vector3, radius: number, seconds: number, teamId: number, transparency: number): BasePart
+	local disc = Instance.new("Part")
+	disc.Name = name
+	disc.Shape = Enum.PartType.Cylinder
+	disc.Anchored, disc.CanCollide, disc.CanQuery, disc.CanTouch, disc.CastShadow = true, false, false, false, false
+	disc.Material = Enum.Material.Neon
+	disc.Color = palette[teamId] or Color3.new(0.8, 0.8, 0.8)
+	disc.Transparency = transparency
+	disc.Size = Vector3.new(0.2, radius * 2, radius * 2)
+	disc.CFrame = CFrame.new(center + Vector3.new(0, 0.12, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	disc.Parent = folder
+	table.insert(zones, disc)
+	task.delay(seconds, function()
+		local i = table.find(zones, disc)
+		if i then
+			table.remove(zones, i)
+		end
+		disc:Destroy()
+	end)
+	return disc
+end
+
+-- A thrown can / capsule / beacon: cosmetic arc, then a blast-radius warning where it sticks until the fuse ends.
+local WARN_RADIUS = { splash_can = 10, color_burst = 12, paintstorm = 18 }
+function EffectsController.throwable(origin: Vector3, velocity: Vector3, gravity: number, fuse: number, kind: string?, teamId: number)
+	local born = os.clock()
+	local size = if kind == "color_burst" then 1.6 else 1
+	EffectsController.launch(origin, velocity, gravity, 400, teamId, size, function(pos: Vector3, _normal: Vector3)
+		local left = fuse - (os.clock() - born)
+		if left > 0.05 then
+			EffectsController.zone("Warn_" .. tostring(kind), pos, WARN_RADIUS[kind or ""] or 8, left, teamId, 0.65)
+		end
+	end)
+end
+
+function EffectsController.zoneCount(): number
+	return #zones
+end
+
 function EffectsController.stats()
 	return { active = #active, live = liveCount, pooled = #pool }
 end
@@ -251,6 +292,18 @@ function EffectsController.start(deps)
 			aimBeams[msg.u] = nil
 		elseif k == "Burst" and typeof(msg.o) == "Vector3" then
 			EffectsController.burst(msg.o, msg.tm or 1)
+		elseif k == "Throw" and typeof(msg.o) == "Vector3" and typeof(msg.v) == "Vector3" then
+			EffectsController.throwable(msg.o, msg.v, msg.g or 98.1, msg.fuse or 1, msg.kind, msg.tm or 1)
+		elseif k == "Storm" and typeof(msg.o) == "Vector3" then
+			EffectsController.zone("Storm", msg.o, msg.r or 18, msg.dur or 6, msg.tm or 1, 0.75)
+		elseif k == "Fizzle" and typeof(msg.o) == "Vector3" then
+			EffectsController.zone("Fizzle", msg.o, 2, 0.8, 0, 0.3)
+			if ui then
+				ui.setText("HUD.Callout", "Storm fizzled")
+			end
+		elseif k == "LaunchMarker" and typeof(msg.o) == "Vector3" then
+			-- enemy-readable landing marker for the whole transit (GDD 08.4)
+			EffectsController.zone("LaunchMarker", msg.o, 3, msg.dur or 1, msg.tm or 1, 0.2)
 		end
 	end)
 	deps.remotes.DamageResult.OnClientEvent:Connect(function(msg)

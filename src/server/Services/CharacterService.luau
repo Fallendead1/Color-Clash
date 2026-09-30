@@ -33,6 +33,7 @@ export type Life = {
 	team: number,
 	shieldUntil: number, -- match clock; spawn shield
 	landingProtectUntil: number,
+	launching: boolean?,
 	glideHeld: boolean,
 	climbing: boolean,
 	ground: string,
@@ -390,7 +391,7 @@ function CharacterService.isShielded(player: Player): boolean
 		return false
 	end
 	local now = matchNow()
-	return now < l.shieldUntil or now < l.landingProtectUntil
+	return now < l.shieldUntil or now < l.landingProtectUntil or l.launching == true -- Team Launch transit
 end
 
 -- First legal offensive action removes spawn/landing protection immediately (GDD 06.4, 08.4).

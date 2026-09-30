@@ -70,6 +70,11 @@ local function release(player: Player, payload, kit, life, s)
 	if best and D.round.acceptsImpactAt(Workspace:GetServerTimeNow()) then
 		C.damageVictim(best, damage, player, attackId, kit.Id)
 		tEnd = tBest
+	elseif worldHit and tWorld <= tEnd and D.round.acceptsImpactAt(Workspace:GetServerTimeNow()) then
+		local sc = D.abilities and D.abilities.screenForPart(worldHit.Instance)
+		if sc then
+			C.hitScreen(sc, damage, player, attackId, kit.Id) -- the beam stops at the screen
+		end
 	end
 	-- 2-wide ground trace below the valid beam segment (independently visible floor within 6 studs)
 	local beamLen = range * tEnd

@@ -21,6 +21,7 @@ local ORDER = {
 	"LoadoutService",
 	"PaintService",
 	"CombatService",
+	"AbilityService",
 	"CharacterService",
 	"RoundService",
 }
