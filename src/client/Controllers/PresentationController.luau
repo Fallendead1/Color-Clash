@@ -3,7 +3,7 @@
 --   Animations/<Key> (Animation)      played on the acting character's Animator
 --   Sounds/<Key>     (Sound)          positional when the cue has a position, in SoundGroup CCSfx (UI keys: CCUi)
 --   Effects/<Key>    (Model/BasePart/Attachment with emitters; optional attributes Lifetime, Burst)
--- Every key is optional: a missing asset is counted (stats().missing) and skipped; nothing here affects gameplay,
+-- Every key is optional; a missing asset is counted (stats().missing) and skipped; nothing here affects gameplay,
 -- damage or timing (a missing animation marker can never gate an attack). Transient objects are bounded.
 
 local Players = game:GetService("Players")
@@ -23,6 +23,7 @@ local stats = { played = {} :: { [string]: number }, missing = {} :: { [string]:
 local tracks: { [Model]: { [string]: AnimationTrack } } = {}
 local loops: { [Model]: AnimationTrack? } = {}
 local folder: Folder? = nil
+local secondaryTrack: AnimationTrack? = nil
 
 -- Cue kind -> presentation key(s). `%w` is replaced by the weapon id, `%k` by the ability kind.
 local CUE_KEYS = {
@@ -40,6 +41,8 @@ local CUE_KEYS = {
 	Fizzle = { sound = "Fizzle", effect = "Fizzle" },
 	LaunchMarker = { sound = "LaunchMarker", effect = "LaunchMarker" },
 }
+-- Local-only presentation: continuous secondary loops for roller/brush kits.
+local SECONDARY_LOOPS = { roller = "RollerSecondary", brush = "BrushSecondary" }
 -- Local weapon actions (the local player receives no Effect cue for its own attacks).
 local ACTION_KEYS = {
 	Fire = "Shot",
@@ -221,6 +224,14 @@ function PresentationController.onCue(msg)
 	if effectKey and pos then
 		PresentationController.effect(effectKey, pos)
 	end
+	if msg.k == "LaunchMarker" and pos then
+		if typeof(msg.f) == "Vector3" then
+			PresentationController.effect("LaunchTransit", msg.f)
+		end
+		task.delay(math.clamp(tonumber(msg.dur) or 1, 0, 3), function()
+			PresentationController.effect("LaunchLanding", pos)
+		end)
+	end
 	local animKey = expand(map.anim, msg)
 	if animKey and type(msg.u) == "number" then
 		local actor = Players:GetPlayerByUserId(msg.u)
@@ -230,12 +241,32 @@ end
 
 -- Local player's own accepted-to-send actions (presentation only; the server still decides).
 function PresentationController.onLocalAction(action: string)
+	local character = player.Character
+	if action == "ChargeReady" then
+		local r = character and character:FindFirstChild("HumanoidRootPart")
+		PresentationController.sound("ChargeReady", r and r.Position)
+		if r then
+			PresentationController.effect("ChargeReady", r.Position + Vector3.new(0, 1.1, 0))
+		end
+		return
+	elseif action == "SecStart" or action == "SecStop" then
+		local kit = Weapons.Defs[player:GetAttribute("CCWeapon") or Weapons.Default]
+		local key = kit and SECONDARY_LOOPS[kit.Family]
+		if key then
+			if action == "SecStart" then
+				secondaryTrack = PresentationController.animate(character, key, true)
+			elseif secondaryTrack then
+				secondaryTrack:Stop(0.1)
+				secondaryTrack = nil
+			end
+		end
+		return
+	end
 	local cue = ACTION_KEYS[action]
 	if not cue then
 		return
 	end
 	local weaponId = player:GetAttribute("CCWeapon") or Weapons.Default
-	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local map = CUE_KEYS[cue]
 	if map then
@@ -262,6 +293,11 @@ local function watchCharacter(character: Model)
 			loops[character] = nil
 		end
 		local key = MOVE_LOOPS[state or ""]
+		if state == "Gliding" then
+			PresentationController.animate(character, "GlideEntry")
+		elseif current and state ~= "Climbing" then
+			PresentationController.animate(character, "GlideExit")
+		end
 		if key then
 			loops[character] = PresentationController.animate(character, key, true)
 		end
@@ -301,6 +337,11 @@ function PresentationController.start(deps)
 			PresentationController.sound("UI_HitConfirm")
 		elseif msg.k == "Shielded" then
 			PresentationController.sound("UI_ShieldHit")
+			local victim = if type(msg.v) == "number" then Players:GetPlayerByUserId(msg.v) else nil
+			local vroot = victim and victim.Character and victim.Character:FindFirstChild("HumanoidRootPart")
+			if vroot then
+				PresentationController.effect("ShieldHit", vroot.Position)
+			end
 		elseif msg.k == "Eliminated" then
 			PresentationController.sound("Eliminated", if typeof(msg.pos) == "Vector3" then msg.pos else nil)
 		end
@@ -313,9 +354,24 @@ function PresentationController.start(deps)
 	deps.remotes.RoundState.OnClientEvent:Connect(function(payload)
 		if type(payload) == "table" and payload.k == "Results" then
 			PresentationController.sound("UI_RoundEnd")
+			local r = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			local cam = Workspace.CurrentCamera
+			local at = if r then r.Position elseif cam then cam.CFrame.Position + cam.CFrame.LookVector * 12 else Vector3.zero
+			PresentationController.effect("ResultsCue", at)
 		end
 	end)
 	deps.weapon.onSend(PresentationController.onLocalAction)
+	if deps.effects then
+		deps.effects.onImpact(function(pos: Vector3)
+			PresentationController.effect("Impact", pos)
+			PresentationController.sound("Impact", pos)
+		end)
+	end
+	if deps.ui then
+		deps.ui.onPanelChanged(function(_, what)
+			PresentationController.sound(if what == "open" then "UI_Confirm" else "UI_Back")
+		end)
+	end
 	-- mantle, dry fire, low paint, glide loop, round cues, screen damage/break, elimination/spawn on every player
 	if deps.movement then
 		deps.movement.onMantle(function()

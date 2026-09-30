@@ -27,6 +27,8 @@ return function(t)
 		local p = Players:GetPlayers()[1]
 		local rounds = tonumber(Workspace:GetAttribute("CCSoakRounds")) or 20
 		S.DevGate.set("ContractFixtures", true)
+		-- kit reselection must not write the tester's real saved profile (Studio DataStore access is enabled)
+		S.DevGate.set("PrefsBackend", "memory")
 		S.DevGate.set("MinimumReady", 1)
 		S.DevGate.set("AllowEmptyTeam", true)
 		S.DevGate.set("CountdownSeconds", 1)

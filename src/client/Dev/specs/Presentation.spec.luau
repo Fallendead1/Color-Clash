@@ -33,6 +33,13 @@ return function(t)
 			burst:SetAttribute("Burst", 5)
 			Instance.new("ParticleEmitter").Parent = burst
 			burst.Parent = effects
+			for _, name in { "LaunchTransit", "LaunchLanding", "ChargeReady", "Impact" } do
+				local fx = Instance.new("Part")
+				fx.Name = name
+				fx.Size = Vector3.new(1, 1, 1)
+				fx:SetAttribute("Lifetime", 0.3)
+				fx.Parent = effects
+			end
 			assets.Parent = ReplicatedStorage
 
 			local ok, failure = pcall(function()
@@ -64,6 +71,18 @@ return function(t)
 				expect(#folder:GetChildren()):toBe(0)
 				-- unknown cue kinds are ignored
 				P.onCue({ k = "NotACue" })
+				-- launch cue: transit effect at the launcher, landing effect after the transit time
+				local lt0, ll0 = st.played["Effect.LaunchTransit"] or 0, st.played["Effect.LaunchLanding"] or 0
+				P.onCue({ k = "LaunchMarker", o = Vector3.new(0, 105, 0), f = Vector3.new(10, 105, 0), dur = 0.2, tm = 1 })
+				expect((st.played["Effect.LaunchTransit"] or 0) - lt0):toBe(1)
+				task.wait(0.35)
+				expect((st.played["Effect.LaunchLanding"] or 0) - ll0):toBe(1)
+				-- local full charge
+				local cr0 = st.played["Effect.ChargeReady"] or 0
+				P.onLocalAction("ChargeReady")
+				if game.Players.LocalPlayer.Character then
+					expect((st.played["Effect.ChargeReady"] or 0) - cr0):toBe(1)
+				end
 			end)
 			assets:Destroy()
 			if existing then

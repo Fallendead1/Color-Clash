@@ -23,10 +23,26 @@ return function(t)
 		return true
 	end
 
+	-- Memory samples are taken after a garbage-collection nudge: Studio's process total otherwise includes
+	-- uncollected garbage from the previous round (Phase 10 diagnosis: all replaced characters are collectable).
+	local function settledMemoryMb(): number
+		for _ = 1, 25 do
+			local junk = {}
+			for i = 1, 20000 do
+				junk[i] = { i }
+			end
+			task.wait()
+		end
+		task.wait(0.5)
+		return Stats:GetTotalMemoryUsageMb()
+	end
+
 	it("runs 20 clean rounds", function()
 		local p = Players:GetPlayers()[1]
 		local rounds = tonumber(Workspace:GetAttribute("CCProductionSoakRounds")) or 20
 		S.DevGate.set("ContractFixtures", false)
+		-- kit reselection must not write the tester's real saved profile (Studio DataStore access is enabled)
+		S.DevGate.set("PrefsBackend", "memory")
 		S.DevGate.set("UseFixture", false)
 		S.DevGate.set("MinimumReady", 1)
 		S.DevGate.set("AllowEmptyTeam", true)
@@ -37,7 +53,7 @@ return function(t)
 		S.DevGate.set("IntermissionSeconds", 1)
 		S.RoundService.applyDevSettings()
 		S.DiagnosticsService.resetForTests()
-		local mem0 = Stats:GetTotalMemoryUsageMb()
+		local mem0 = settledMemoryMb()
 		local summary = { rounds = {}, problems = {} }
 		local lastMap = nil
 		local seq = 700000
@@ -142,7 +158,8 @@ return function(t)
 				"round " .. r .. ": no reset"
 			)
 			task.wait(0.3)
-			rec.memMbAfterReset = math.floor(Stats:GetTotalMemoryUsageMb() * 10) / 10
+			rec.memMbAfterReset = math.floor(settledMemoryMb() * 10) / 10
+			rec.instancesTagMb = math.floor(Stats:GetMemoryUsageMbForTag(Enum.DeveloperMemoryTag.Instances) * 10) / 10
 			rec.instances = #Workspace:GetDescendants()
 			local c = S.AbilityService.counts()
 			if c.throwables + c.storms + c.screens ~= 0 or S.CombatService.projectileCount() ~= 0 then

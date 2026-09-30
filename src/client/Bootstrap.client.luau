@@ -63,7 +63,13 @@ WeaponController.start({
 })
 TacticalMapController.start({ ui = UIController, input = InputController, paint = PaintClient, remotes = remotes })
 ScoreboardController.start({ ui = UIController, input = InputController, remotes = remotes })
-PresentationController.start({ remotes = remotes, weapon = WeaponController, movement = MovementController })
+PresentationController.start({
+	remotes = remotes,
+	weapon = WeaponController,
+	movement = MovementController,
+	effects = EffectsController,
+	ui = UIController,
+})
 SettingsController.start({
 	ui = UIController,
 	input = InputController,

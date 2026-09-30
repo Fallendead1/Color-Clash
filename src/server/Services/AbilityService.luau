@@ -733,7 +733,7 @@ local function stepLaunches()
 					s.launchReady = mNow + LAUNCH.CooldownSeconds
 					life.launching = true
 					life.root.Anchored = true
-					combat.cue(nil, { k = "LaunchMarker", o = landing, tm = life.team, dur = LAUNCH.TransitSeconds })
+					combat.cue(nil, { k = "LaunchMarker", o = landing, f = life.root.Position, tm = life.team, dur = LAUNCH.TransitSeconds })
 					sendLaunchState(player, "transit", { arriveAt = L.arriveAt })
 					diagnostics.count("Launch.departed")
 				end

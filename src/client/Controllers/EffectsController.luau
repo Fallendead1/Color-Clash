@@ -1,6 +1,6 @@
 -- Presentation-only effects (GDD 06.2, 06.3, 13.1 VFX timing): cosmetic projectiles for local and remote shots,
 -- confirmed-hit markers, elimination paint bursts. Pooled and bounded (GDD 14.2: 192 transient objects). Nothing here
--- affects gameplay; Codex replaces the placeholder visuals.
+-- affects gameplay; Codex visuals attach through the presentation hooks.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -75,6 +75,12 @@ function EffectsController.refreshGeometry()
 	params.FilterDescendantsInstances = list
 end
 
+-- Presentation listeners for cosmetic shot impacts (Codex "Impact" effect/sound).
+local impactListeners: { (Vector3, Vector3) -> () } = {}
+function EffectsController.onImpact(fn: (Vector3, Vector3) -> ())
+	table.insert(impactListeners, fn)
+end
+
 -- Launches a cosmetic ballistic object with an explicit velocity. `onImpact(position, normal)` fires on world contact.
 function EffectsController.launch(origin: Vector3, velocity: Vector3, gravity: number, range: number, teamId: number, size: number?, onImpact: ((Vector3, Vector3) -> ())?): any?
 	local part = take()
@@ -96,7 +102,11 @@ function EffectsController.projectile(origin: Vector3, direction: Vector3, weapo
 	if not w or not w.ProjectileSpeed then
 		return nil
 	end
-	return EffectsController.launch(origin, direction * w.ProjectileSpeed, w.Gravity, w.Range, teamId, if w.Family == "blaster" then 0.9 else 0.5, onImpact)
+	local fx = EffectsController.launch(origin, direction * w.ProjectileSpeed, w.Gravity, w.Range, teamId, if w.Family == "blaster" then 0.9 else 0.5, onImpact)
+	if fx then
+		fx.shot = true
+	end
+	return fx
 end
 
 -- Three cosmetic lobes for a Splash Pot volley (same arcs as the server).
@@ -110,6 +120,9 @@ function EffectsController.volley(origin: Vector3, direction: Vector3, weaponId:
 		local lobe = Ballistics.yaw(vector.create(direction.X, direction.Y, direction.Z), angle)
 		local vel = Vector3.new(lobe.X, lobe.Y, lobe.Z) * w.LobeSpeed + Vector3.new(0, w.LobeUpSpeed, 0)
 		local fx = EffectsController.launch(origin, vel, w.Gravity, w.Range, teamId, 0.8, onImpact)
+		if fx then
+			fx.shot = true
+		end
 		if fx then
 			table.insert(out, fx)
 		end
@@ -170,6 +183,11 @@ local function step(dt: number)
 			if hit then
 				if fx.onImpact then
 					task.spawn(fx.onImpact, hit.Position, hit.Normal)
+				end
+				if fx.shot then
+					for _, fn in impactListeners do
+						task.spawn(fn, hit.Position, hit.Normal)
+					end
 				end
 				done = true
 			else

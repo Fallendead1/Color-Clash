@@ -65,6 +65,8 @@ return function(t)
 
 		it("starts a live solo match with the player outside the base", function()
 			p, team = H.startSolo(S)
+			-- the saved profile may hold any kit (real DataStore in Studio): this slice is Sprayline
+			S.LoadoutService.devSetKit(p, "sprayline")
 			H.place(S, p, Vector3.new(0, 100, -4), Vector3.new(1, 0, 0))
 			task.wait(0.4)
 			refillAndClearShield()

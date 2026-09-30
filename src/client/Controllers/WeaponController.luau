@@ -27,6 +27,7 @@ local lastDryCue = 0
 local stats = { sent = 0, denied = 0, predictedCells = 0, byAction = {} }
 local charging = false
 local chargeStarted = 0
+local chargeReadyShown = false
 local lastHeldAim = 0
 local rolling = false
 local pushing = false
@@ -234,6 +235,7 @@ local function chargeStart(k)
 	end
 	charging = true
 	chargeStarted = os.clock()
+	chargeReadyShown = false
 	movement.setActivity("charging", true)
 	send("ChargeStart")
 end
@@ -339,6 +341,12 @@ local function step()
 		-- charge glow / state readout; held aim relays the warning line at <= 10 Hz
 		local factor = math.clamp((os.clock() - chargeStarted - k.MinCharge) / (k.FullCharge - k.MinCharge), 0, 1)
 		ui.setText("HUD.ReticleState", string.format("Charge %d%%", math.floor(factor * 100)))
+		if factor >= 1 and not chargeReadyShown then
+			chargeReadyShown = true
+			for _, fn in sendListeners do
+				task.spawn(fn, "ChargeReady") -- presentation cue only; nothing is sent
+			end
+		end
 		if os.clock() - lastHeldAim > 0.1 then
 			lastHeldAim = os.clock()
 			local aim = camera.aim()
