@@ -573,10 +573,26 @@ local function findLanding(center: Vector3, teamId: number): Vector3?
 			table.insert(offsets, Vector3.new(math.cos(a), 0, math.sin(a)) * (ring * LAUNCH.LandingSearchRadius / 2))
 		end
 	end
+	-- never land on top of a living character (the teammate stands at the centre)
+	local occupied = {}
+	for _, p in Players:GetPlayers() do
+		local l = character.life(p)
+		if l and l.alive and l.root then
+			table.insert(occupied, l.root.Position)
+		end
+	end
+	local function free(spot: Vector3): boolean
+		for _, r in occupied do
+			if Vector3.new(r.X - spot.X, 0, r.Z - spot.Z).Magnitude < 3 and math.abs(r.Y - spot.Y) < 7 then
+				return false
+			end
+		end
+		return true
+	end
 	for _, off in offsets do
 		local probe = center + off
 		local hit = Workspace:Raycast(probe + Vector3.new(0, 4, 0), Vector3.new(0, -10, 0), combat.plainParams())
-		if hit and hit.Normal.Y > 0.7 then
+		if hit and hit.Normal.Y > 0.7 and free(hit.Position) then
 			local spot = hit.Position
 			local enemyBase = combat.inAnyBase(spot + Vector3.new(0, 1, 0))
 			if (enemyBase == nil or enemyBase == teamId) and not character.inVolume(spot, "OutOfBounds") then

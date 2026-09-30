@@ -29,7 +29,7 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | FLOW-08 | Pure | PASS (pure) | exact tie / near tie |
 | FLOW-09 | Pure + 3 real clients | PASS | backfill to smaller side, synced first, ult 0 |
 | FLOW-10 | Pure + 3 real clients | PASS | <= 60 s left: stays in staging |
-| FLOW-11 | Pure | PASS (pure) | real replacement-in-grace NOT RUN |
+| FLOW-11 | Pure + 3 real clients (production map) | PASS | multi:ThreeClient flow11: whole team kicked -> VacancyPause, clock frozen (896.9 s before/after 3 s); replacement readied -> backfilled to the empty team -> Live resumed at 896.9 s and running |
 | FLOW-12 | Pure + real clients | PASS | real kick -> pause (clock frozen) -> NoContest |
 | FLOW-13 | — | NOT RUN | reconnect during loading/results/reset needs a client joining mid-state (multi-client session) |
 | FLOW-14 | Perf (contract fixtures, solo) | PASS | perf:RoundSoak 20/20 rounds: maps alternate every round, 7 kits reselected and locked, no entity/arena leftovers, memory -0.5 MB, 0 hash mismatches, 0 handler errors |
@@ -71,9 +71,9 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | COMBAT-02 | Engine | PASS | replay: one cost, one hit |
 | COMBAT-03 | Engine | PASS | thin cover blocks; normalized rig has 0 accessories |
 | COMBAT-04 | Engine | PASS | empty tank |
-| COMBAT-05 | — | NOT RUN | next multi-client session |
-| COMBAT-06 | Pure + real clients (single attacker) | PASS (pure) / assist with real attackers NOT RUN | |
-| COMBAT-07 | — | NOT RUN | next multi-client session |
+| COMBAT-05 | 3 real clients (Switchyard v3) | PASS | one Splash Can eliminated both real opponents 2 ms apart; each life credited separately to the thrower, deaths +1 each, eliminations +2, no self damage |
+| COMBAT-06 | Pure + 3 real clients (Switchyard v3) | PASS | final hitter credited once and never also an assist; the other attacker's 24 damage counted as an assist within 5 s, not after 5.6 s |
+| COMBAT-07 | 3 real clients (Switchyard v3) | PASS | pending Splash Can outlived the victim's old life: old death stays credited to its killer; the can's later 70 damage is logged only against the new life |
 | COMBAT-08 | Engine + Client (real mouse) | PASS | base both directions |
 | COMBAT-09 | Engine | PASS | shield removed by attack |
 | COMBAT-10 | Pure + Engine | PASS | OOB elimination; recent-hit credit (pure) |
@@ -94,9 +94,9 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | ABIL-04 | Pure + Engine | PASS | own floor 0, walls 0, Color Burst paint 0, neutral floor > 0 within 6/s |
 | ABIL-05 | Engine | PASS | death in preparation: cancelled, meter already spent, no refund; after release: burst still resolves |
 | ABIL-06 | Engine | PASS | canopy blocks rain paint and damage; two overlapping storms, <= 1 tick of 5 per 0.5 s; wall beacon fizzles with cue; no meter |
-| ABIL-07 | Engine + real client (Base) | PASS (Base) / teammate NOT RUN | channel 1.0 s, transit invulnerable, arrival 2.0 s at a validated spawn, 8 s cooldown; real client via Launch remote 2.10 s; teammate launch needs 2 same-team clients |
+| ABIL-07 | Engine + real clients (Base, teammate on Switchyard v3) | PASS | Base: channel 1.0 s, arrival 2.0 s, cooldown; teammate: depart 1.05 s, arrive 2.05 s, landing 3.0 studs from the teammate (never on top: defect found and fixed), destination frozen while the teammate moved, cooldown |
 | ABIL-08 | Engine | PASS | damage / >1 stud movement / attack cancel the channel; no departure, no cooldown; 1.5 s recent-damage rule |
-| ABIL-09 | Engine (in-transit) | PASS (in-transit fallback) / target death NOT RUN | blocked frozen landing -> validated friendly spawn, cooldown retained; pre-departure target death needs a teammate client |
+| ABIL-09 | Engine + 3 real clients | PASS | in-transit invalid landing -> validated spawn, cooldown kept; teammate eliminated during the channel -> targetGone cancel, no departure, no cooldown; real enemy as target rejected |
 | ABIL-10 | Engine | PASS | round end with storm, screen, can in flight and launch channel: all cleared, nothing resolves later, no screen parts left |
 
 ## 18.4 UI, maps and content
@@ -133,7 +133,7 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | NET-01 | Pure + Engine + Client | PASS | late join while painting converges (hash ack) |
 | NET-02 | Pure + Engine + Client | PASS | gap → exactly one bounded resync → exact state |
 | NET-03 | Engine + Client (single client, simulated disconnect by reset) | PASS (simulated) | real disconnect during snapshot needs multi-client: BLOCKED |
-| NET-04 | 2 real clients | PASS (2 clients) / 8 clients BLOCKED (memory) | same frozen state & results |
+| NET-04 | 2 and 3 real clients | PASS (2-3 clients, fixture and Switchyard v3) / 8 clients BLOCKED (memory) | all clients' frozen paint hashes equal the server's; results raw counts over 31,530 cells |
 | NET-05 | Real client + dev net simulation | PASS (simulated) | one-way 25/75/150 ms + jitter 10-30 ms + 5 % unreliable loss (measured app RTT 0.115/0.198/0.35 s): 15/15 shots accepted each, 0 rejects, 0 duplicates (server accepted delta == sent), client paint hash == server hash, 0 handler errors. Real internet links NOT RUN |
 | NET-06 | Real client + dev net simulation | PASS (simulated) | 300 ms one-way (RTT 0.67-0.70 s): 15/15 accepted, hashes equal, "Connection delayed" shown and rate-limited (30 s), player never kicked (no latency kick path exists) |
 | NET-07 | Engine | PASS (bound) / moving-player rewind NOT RUN | rewind = one-way latency capped at 150 ms (0.1 s RTT -> 50 ms, 1.2 s -> 150 ms); full charge at max rewind still blocked by current thin cover; moving-player case needs 2 clients |

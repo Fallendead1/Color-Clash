@@ -16,6 +16,12 @@ local Validate = require(Shared.Protocol.Validate)
 
 local MapLoader = require(script.Parent.Parent.Map.MapLoader)
 local WeaponModels = require(script.Parent.Parent.Presentation.WeaponModels)
+local DevGate = require(script.Parent.Parent.DevGate)
+
+-- Respawn delay; DevGate "RespawnSeconds" shortens it for lifecycle tests only (COMBAT-07).
+local function respawnSeconds(): number
+	return DevGate.get("RespawnSeconds", GameConfig.Match.RespawnSeconds)
+end
 
 local CharacterService = {}
 
@@ -579,14 +585,14 @@ function CharacterService.eliminate(victim: Player, attacker: Player?, weapon: s
 		life = life.lifeId,
 		pos = pos,
 		team = life.team,
-		respawnIn = GameConfig.Match.RespawnSeconds,
+		respawnIn = respawnSeconds(),
 	})
 	diagnostics.event("Eliminated", { victim = victim.UserId, attacker = credited and credited.UserId, weapon = weapon, life = life.lifeId })
 	if life.character then
 		life.character:Destroy()
 		life.character = nil
 	end
-	life.respawnAt = now + GameConfig.Match.RespawnSeconds
+	life.respawnAt = now + respawnSeconds()
 	net.fire(victim, "Resource", { life = life.lifeId, alive = false, respawnAt = life.respawnAt, hp = 0 })
 end
 
