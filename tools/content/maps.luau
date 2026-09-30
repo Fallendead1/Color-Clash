@@ -1,6 +1,7 @@
 -- Original, mirrored arena-sport layouts. Rebuild with tools/build_content.
 local C = require("./common")
 local coverLayouts = require("./cover_layouts")
+local elevatedCover = require("./elevated_cover")
 local R = C.R
 local N = C.new
 local charcoal = { 36, 48, 54 }
@@ -32,7 +33,7 @@ end
 local function build(id, display, w, d, bx, canopy)
 	local root = N("Model", display, nil, nil, {
 		MapId = id,
-		MapVersion = 4,
+		MapVersion = 5,
 		ContractVersion = 1,
 		DisplayName = display,
 		IsFixture = false,
@@ -233,6 +234,7 @@ local function build(id, display, w, d, bx, canopy)
 		C.part(g, name, { sx, h, sz }, { x, h / 2, z }, charcoal)
 		C.cosmetic(decor, name .. "Trim", { sx, 0.15, sz }, { x, h + 0.075, z }, if canopy then teal else orange)
 	end
+	elevatedCover(root, canopy)
 	local below = C.cosmetic(vol, "RecoveryBelow", { w + 40, 12, d + 40 }, { 0, -18, 0 }, cream)
 	below.Transparency = 1
 	below:SetAttribute("VolumeKind", "OutOfBounds")

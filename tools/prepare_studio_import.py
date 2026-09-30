@@ -1,5 +1,7 @@
 """Assemble the SAME native content builders for Studio MCP execution when Rojo is disconnected.
 Output is local authoring code, never mapped into the live game. Does not publish the place.
+For map-only edits use prepare_map_import.py instead. Full imports can detach mapped instances;
+reconnect the Studio Rojo plugin afterwards to restore tracking.
 """
 from pathlib import Path
 import json
@@ -8,8 +10,9 @@ def main():
  common=Path('tools/content/common.luau').read_text().replace('local R = require("@lune/roblox")','local R = {Instance=Instance,Vector3=Vector3,Color3=Color3,CFrame=CFrame,Enum=Enum,UDim2=UDim2,UDim=UDim,Vector2=Vector2}')
  parts=['local C=(function()\n'+common+'\nend)()']
  parts.append('local coverLayouts=(function()\n'+Path('tools/content/cover_layouts.luau').read_text()+'\nend)()')
+ parts.append('local elevatedCover=(function()\n'+Path('tools/content/elevated_cover.luau').read_text().replace('local C = require("./common")','')+'\nend)()')
  for var,file in [('maps','maps'),('presentation','presentation'),('finishUI','ui_finish')]:
-  s=Path('tools/content/'+file+'.luau').read_text().replace('local C = require("./common")','').replace('local coverLayouts = require("./cover_layouts")','')
+  s=Path('tools/content/'+file+'.luau').read_text().replace('local C = require("./common")','').replace('local coverLayouts = require("./cover_layouts")','').replace('local elevatedCover = require("./elevated_cover")','')
   parts.append('local '+var+'=(function()\n'+s+'\nend)()')
  s=Path('tools/content/ui.luau').read_text().replace('local R = require("@lune/roblox")','local R=C.R').replace('require("../../src/shared/UI/UIContract")','require(game.ReplicatedStorage.Shared.UI.UIContract)').replace('require("../../src/shared/UI/Strings")','require(game.ReplicatedStorage.Shared.UI.Strings)')
  parts.append('local ui=(function()\n'+s+'\nend)()')

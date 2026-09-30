@@ -55,9 +55,12 @@ The complete inventory, with the code hook for each item, is in `ASSET_CONTRACT.
 
 ## 3. How to check your content
 
-**Current follow-up evidence:** the v4 authored maps and content fixes are documented in
-`CODEX_CONTENT_REPORT.md` and `qa/phase-09/*-v4.json`. Use that report for the return to Claude after
-`CODEX_FOLLOWUP.md` items 1–4. Animation/audio publishing is reserved for the owner.
+**Current follow-up evidence:** the v5 authored maps and content fixes are documented in
+`CODEX_CONTENT_REPORT.md` and `qa/phase-09/*-v5.json`. Use that report for the return to Claude after
+`CODEX_FOLLOWUP.md` items 1–4 and 6–7. Animation/audio publishing is reserved for the owner.
+
+Round 2 evidence is in `qa/phase-09/*-v5.json`; use Claude's unchanged ground/elevated acceptance scanner.
+The owner must reconnect Rojo to the existing localhost:34872 server after the documented maps-only fallback import.
 
 | Check | How |
 |---|---|

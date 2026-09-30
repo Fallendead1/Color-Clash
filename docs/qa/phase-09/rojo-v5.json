@@ -1,0 +1,9 @@
+{
+  "port": 34872,
+  "trackedMapVersionProbePropagated": false,
+  "importScope": "ServerStorage.ColorClashMaps only",
+  "scriptImports": 0,
+  "effectsControllerSourceMatchesTrackedFile": true,
+  "liveTrackingVerified": false,
+  "ownerAction": "Reconnect the existing Studio Rojo plugin to localhost:34872 before Phase 10 integration."
+}

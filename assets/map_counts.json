@@ -1,4 +1,4 @@
 {
-  "switchyard": {"ExpectedScoringCells": 26996, "ExpectedWallCells": 1744, "ExpectedPatches": 9},
-  "canopy_courts": {"ExpectedScoringCells": 28434, "ExpectedWallCells": 1920, "ExpectedPatches": 9}
+  "switchyard": {"ExpectedScoringCells": 26620, "ExpectedWallCells": 1744, "ExpectedPatches": 9},
+  "canopy_courts": {"ExpectedScoringCells": 28156, "ExpectedWallCells": 1920, "ExpectedPatches": 9}
 }

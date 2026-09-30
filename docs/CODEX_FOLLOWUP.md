@@ -73,3 +73,9 @@ Decision by the project owner: **fix the high-ground sightlines.**
 7. **Rojo tracking.** Importing scripts into Studio through the Studio API detached `EffectsController` from Rojo last
    time (Studio ran a stale copy until the plugin was reconnected). Prefer changing tracked files and letting Rojo
    sync; if you must import through Studio, say so in the report so the owner reconnects Rojo afterwards.
+
+**Round 2 implementation:** v5 geometry passes the unchanged acceptance scanner with zero ground/elevated lines
+over 95. Expanded traversal includes both ramp edges, the center track and each deck. See the current
+`CODEX_CONTENT_REPORT.md` and `qa/phase-09/*-v5.json` for the final checks. Tracked map changes did not propagate;
+only maps were imported through the fallback API path. No scripts were imported or changed. **Reconnect the Rojo
+plugin to the existing localhost:34872 server before Claude continues.**

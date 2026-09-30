@@ -1,0 +1,210 @@
+{
+  "switchyard": [
+    {
+      "paritySeconds": 0.0024044000019785017,
+      "pass": true,
+      "name": "center",
+      "walks": [
+        {
+          "seconds": 11.048052499987534,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.050456899989513,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.002617399994051084,
+      "pass": true,
+      "name": "terrace_flank",
+      "walks": [
+        {
+          "seconds": 11.782343400001992,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.784960799996043,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.013897099997848272,
+      "pass": true,
+      "name": "covered_flank",
+      "walks": [
+        {
+          "seconds": 13.615406099997927,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 13.601509000000078,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.004003900015959516,
+      "pass": true,
+      "name": "gallery_-8.4",
+      "walks": [
+        {
+          "seconds": 5.981845399990561,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 5.985849300006521,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0036672999849542975,
+      "pass": true,
+      "name": "gallery_0",
+      "walks": [
+        {
+          "seconds": 5.967899200011743,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 5.9715664999966975,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.013326299987966195,
+      "pass": true,
+      "name": "gallery_8.4",
+      "walks": [
+        {
+          "seconds": 5.9735190999927,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 5.960192800004734,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    }
+  ],
+  "canopy_courts": [
+    {
+      "paritySeconds": 0.0015217999898595735,
+      "pass": true,
+      "name": "center",
+      "walks": [
+        {
+          "seconds": 10.217018199997256,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 10.215496400007396,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0025096000026678666,
+      "pass": true,
+      "name": "terrace_flank",
+      "walks": [
+        {
+          "seconds": 11.648608200004674,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 11.651117800007341,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0030181999900378287,
+      "pass": true,
+      "name": "covered_flank",
+      "walks": [
+        {
+          "seconds": 11.682505100005073,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 11.685523299995111,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0030476999963866547,
+      "pass": true,
+      "name": "gallery_-8.4",
+      "walks": [
+        {
+          "seconds": 5.948532199996407,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 5.951579899992794,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.006855500003439374,
+      "pass": true,
+      "name": "gallery_0",
+      "walks": [
+        {
+          "seconds": 5.966391199995996,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 5.973246699999436,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.015091999986907467,
+      "pass": true,
+      "name": "gallery_8.4",
+      "walks": [
+        {
+          "seconds": 5.968945599990548,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 5.95385360000364,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    }
+  ]
+}

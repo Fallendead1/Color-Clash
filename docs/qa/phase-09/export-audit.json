@@ -299,17 +299,17 @@
   "externalAssetIds": {},
   "maps": {
     "canopy_courts": {
-      "mapVersion": 4,
-      "nativeParts": 323,
+      "mapVersion": 5,
+      "nativeParts": 391,
       "patches": 9,
-      "scoringCells": 28434,
+      "scoringCells": 28156,
       "wallCells": 1920
     },
     "switchyard": {
-      "mapVersion": 4,
-      "nativeParts": 287,
+      "mapVersion": 5,
+      "nativeParts": 343,
       "patches": 9,
-      "scoringCells": 26996,
+      "scoringCells": 26620,
       "wallCells": 1744
     }
   },

@@ -36,7 +36,31 @@ for index, template in game.ServerStorage.ColorClashMaps:GetChildren() do
 	map.Parent = root
 	local records = {}
 	report[template:GetAttribute("MapId")] = records
-	for _, route in game.HttpService:JSONDecode(map:GetAttribute("RouteReview")) do
+	local routes = game.HttpService:JSONDecode(map:GetAttribute("RouteReview"))
+	local canopy = map:GetAttribute("MapId") == "canopy_courts"
+	local height, z = if canopy then 10 else 8, if canopy then 60 else 48
+	local toe = 35 - math.sqrt(24 * 24 - height * height)
+	-- Center and both edges exercise the full 20-stud ramp and the deck in both directions.
+	for _, offset in { -8.4, 0, 8.4 } do
+		table.insert(
+			routes,
+			{
+				name = "gallery_" .. offset,
+				points = {
+					{ toe - 5, z + offset, 0 },
+					{ toe + 2, z + offset, 1 },
+					{ 35, z + offset, height },
+					{ 47, z + offset, height },
+					{ 54, z + offset, height },
+					{ 47, z + offset, height },
+					{ 35, z + offset, height },
+					{ toe + 2, z + offset, 1 },
+					{ toe - 5, z + offset, 0 },
+				},
+			}
+		)
+	end
+	for _, route in routes do
 		local pair = { name = route.name, walks = {} }
 		table.insert(records, pair)
 		for _, side in { -1, 1 } do
@@ -59,7 +83,7 @@ for index, template in game.ServerStorage.ColorClashMaps:GetChildren() do
 				local started = os.clock()
 				for i = 2, #route.points do
 					local p = route.points[i]
-					hum:MoveTo(Vector3.new(ox + side * p[1], 1103, side * p[2]))
+					hum:MoveTo(Vector3.new(ox + side * p[1], 1103 + (p[3] or 0), side * p[2]))
 					if not hum.MoveToFinished:Wait() then
 						record.reached = false
 						record.failedSegment = i

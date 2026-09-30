@@ -2,8 +2,9 @@
 
 Milestone target: **Phase 09 production content** (not game complete). Statuses follow GDD 17.1.
 
-**Current project status: PHASE_10_INTEGRATION_REVIEW** (2026-09-30). Codex follow-up items 1–4 are implemented:
-v4 cover/routes, authoring animations excluded from runtime, bounded character subscriptions and Canopy flank parity.
+**Current project status: PHASE_10_INTEGRATION_REVIEW** (2026-09-30). Codex follow-up items 1–4 and Round 2 items 6–7
+are implemented. V5 ground/elevated sightlines pass Claude's unchanged scanner; ramp/deck and flank traversals pass.
+Authoring animations remain excluded from runtime, and character subscriptions remain bounded.
 See `docs/CODEX_CONTENT_REPORT.md` for current measured evidence and limitations. The owner explicitly deferred
 animation/audio publishing. Full release acceptance still needs published playback and the remaining Phase 10 checks.
 Claude resolved the historical v3 soak failure as uncollected Studio garbage; it is not a current leak finding.
@@ -22,7 +23,7 @@ The prior Phase 00–08 code/fixture evidence is preserved; it is not a producti
 | 07 | Player-facing loop | PASS_CODE (wireframe, contract fixtures) | `docs/qa/phase-07.md` | Real DataStore save path BLOCKED (Studio API access off); FLOW-13 reconnect needs multi-client; physical devices BLOCKED |
 | 08 | Harden, profile, Codex handoff | PASS_CODE → CODE_READY_FOR_CODEX | `docs/qa/phase-08.md`, `docs/CODEX_HANDOFF.md` | 8-client stress BLOCKED (memory); devices BLOCKED |
 | 09 | Production assets, maps, UI (Codex) | CONTENT FOLLOW-UP IMPLEMENTED; publishing deferred | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/`, `docs/CODEX_FOLLOWUP.md` | Owner publishes the 26 animations and 34 sounds later; full content acceptance remains open |
-| 10 | Claude verifies the actual game | IN PROGRESS | `docs/qa/phase-10.md`, current Codex content report | Review v4 content evidence; published animation/audio; 8 clients, devices, published smoke test, playtests |
+| 10 | Claude verifies the actual game | IN PROGRESS | `docs/qa/phase-10.md`, current Codex content report | Review v5 evidence; reconnect Rojo after maps-only fallback; published animation/audio; 8 clients, devices, published smoke test, playtests |
 
 ## Project identity (ENV-01)
 

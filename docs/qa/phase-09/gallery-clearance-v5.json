@@ -1,0 +1,16 @@
+{
+  "switchyard": {
+    "baseSightlines": [],
+    "climbClearanceFailures": [],
+    "climbSamples": 36,
+    "pass": true,
+    "baseRays": 16
+  },
+  "canopy_courts": {
+    "baseSightlines": [],
+    "climbClearanceFailures": [],
+    "climbSamples": 44,
+    "pass": true,
+    "baseRays": 16
+  }
+}

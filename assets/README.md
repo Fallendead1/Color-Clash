@@ -14,6 +14,8 @@ These are original project-authored Roblox primitives, native UI, R15 pose clips
 
 Rebuild models and UI with `lune run tools/build_content`. Rebuild the 34 original WAVs with `tools/.venv/Scripts/python.exe tools/content/audio.py`. Run `lune run tools/validate_content` and `powershell -ExecutionPolicy Bypass -File tools/verify.ps1` afterwards. Map geometry changes require a new MapVersion and fresh Studio-derived counts in `map_counts.json`; never estimate those counts.
 
+Prefer the existing Rojo connection on port 34872 for Studio updates. If map synchronization fails, `python tools/prepare_map_import.py` assembles a maps-only fallback in `build/import_maps.luau`; it never imports scripts or replaces UI/assets. Reconnect the Studio Rojo plugin after any fallback import. Use Claude's unchanged `tools/content/sightline_scan_claude.luau` in Edit mode for both ground and elevated map acceptance.
+
 ## Identity and permission record
 
 - Native content: authored in this repository for Color Clash; no remote ID or external loading permission is needed.

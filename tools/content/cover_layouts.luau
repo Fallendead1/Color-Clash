@@ -2,14 +2,14 @@
 -- Only collinear overlaps are merged; occupied space is unchanged.
 return {
 	switchyard = {
-		routes = [==[[{"points":[[108,12],[108,26],[62,26],[62,1],[36,1],[36,17],[0,17],[0,0]],"radius":9,"name":"center","spawnAccessRadius":6},{"radius":6,"name":"terrace_flank","points":[[108,12],[108,26],[78,26],[78,72],[18,72],[18,66],[6,66],[6,48],[0,48]]},{"radius":6,"name":"covered_flank","points":[[108,12],[112.5,12],[112.5,-24],[78,-24],[78,-70],[24,-70],[24,-48],[0,-48]]}]]==],
+		routes = [==[[{"points":[[108,12],[108,26],[62,26],[62,1],[37,1],[37,17],[0,17],[0,0]],"radius":9,"name":"center","spawnAccessRadius":6},{"radius":6,"name":"terrace_flank","points":[[108,12],[108,26],[78,26],[78,72],[18,72],[18,66],[6,66],[6,48],[0,48]]},{"radius":6,"name":"covered_flank","points":[[108,12],[112.5,12],[112.5,-24],[78,-24],[78,-70],[24,-70],[24,-48],[0,-48]]}]]==],
 		boxes = {
 			{ "BaseBaffleA", -85, 0, 26, 10, 32 },
 			{ "BaseBaffleB", 85, 0, 26, 10, 32 },
 			{ "FlankBaffleA", -6, -77, 6, 8, 6 },
 			{ "FlankBaffleB", 6, 77, 6, 8, 6 },
-			{ "OuterChicaneA", -48, -24, 4, 8, 24 },
-			{ "OuterChicaneB", 48, 24, 4, 8, 24 },
+			{ "OuterChicaneA", -49, -24, 4, 8, 24 },
+			{ "OuterChicaneB", 49, 24, 4, 8, 24 },
 			{ "SightScreenA1", -46, 19.5, 8, 8, 21 },
 			{ "SightScreenA3", 0, -77, 8, 8, 6 },
 			{ "SightScreenA4", -36, -36, 4, 8, 16 },
@@ -94,10 +94,10 @@ return {
 			{ "UtilityBank68", 96, -36, 16, 8, 8 },
 			{ "UtilityIslandA1", -62, 24, 10, 8, 18 },
 			{ "UtilityIslandA2", -36, -36, 12, 3.5, 16 },
-			{ "UtilityIslandA3", -18.75, 9, 15.5, 8, 32 },
+			{ "UtilityIslandA3", -19.25, 9, 16.5, 8, 32 },
 			{ "UtilityIslandB1", 62, -24, 10, 8, 18 },
 			{ "UtilityIslandB2", 36, 36, 12, 3.5, 16 },
-			{ "UtilityIslandB3", 18.75, -9, 15.5, 8, 32 },
+			{ "UtilityIslandB3", 19.25, -9, 16.5, 8, 32 },
 		},
 	},
 	canopy_courts = {

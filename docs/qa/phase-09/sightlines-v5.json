@@ -1,0 +1,9 @@
+{
+  "script": "tools/content/sightline_scan_claude.luau",
+  "datamodel": "Edit",
+  "sha256": "81D342BBF31D76787850BE841847E2D901D5155878D001EA10664251CFDFD8E4",
+  "scriptModified": false,
+  "baseline": "Switchyard v4: GROUND max 96.7 (6 lines >95) | ELEVATED max 196.6 from ramp_A (-33,-57) (1258 lines >95)\nCanopy Courts v4: GROUND max 94.1 (0 lines >95) | ELEVATED max 204.9 from ramp_A (-21,-69) (1355 lines >95)",
+  "final": "Switchyard v5: GROUND max 94.7 (0 lines >95) | ELEVATED max 81.0 from terrace_A (-51,-57) (0 lines >95)\nCanopy Courts v5: GROUND max 93.0 (0 lines >95) | ELEVATED max 90.9 from ramp_A (-25,-61) (0 lines >95)",
+  "remainingOver95": []
+}

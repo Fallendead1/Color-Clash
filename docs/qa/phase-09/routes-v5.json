@@ -1,0 +1,108 @@
+{
+  "switchyard": {
+    "mapVersion": 5,
+    "sightline": {
+      "wholeBaseCrossingsOver95": 0,
+      "samples": 370112,
+      "rawMax": 94.82196807861328,
+      "combatMax": 94.82196807861328
+    },
+    "screenFailures": [],
+    "clearanceFailures": [],
+    "pass": true,
+    "routes": [
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          0
+        ],
+        "name": "center",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 11.25,
+        "teamBLength": 180,
+        "teamALength": 180,
+        "width": 18
+      },
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          48
+        ],
+        "name": "terrace_flank",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 12,
+        "teamBLength": 192,
+        "teamALength": 192,
+        "width": 12
+      },
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          -48
+        ],
+        "name": "covered_flank",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 13.8125,
+        "teamBLength": 221,
+        "teamALength": 221,
+        "width": 12
+      }
+    ]
+  },
+  "canopy_courts": {
+    "mapVersion": 5,
+    "sightline": {
+      "wholeBaseCrossingsOver95": 0,
+      "samples": 391744,
+      "rawMax": 112.56878662109375,
+      "combatMax": 93.33966064453125
+    },
+    "screenFailures": [],
+    "clearanceFailures": [],
+    "pass": true,
+    "routes": [
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          0
+        ],
+        "name": "center",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 10.410013735294342,
+        "teamBLength": 166.56021976470947,
+        "teamALength": 166.56021976470947,
+        "width": 18
+      },
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          58
+        ],
+        "name": "terrace_flank",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 11.878763735294342,
+        "teamBLength": 190.06021976470947,
+        "teamALength": 190.06021976470947,
+        "width": 12
+      },
+      {
+        "spawnAccessWidth": 12,
+        "teamBTarget": [
+          0,
+          -58
+        ],
+        "name": "covered_flank",
+        "estimatedParitySeconds": 0,
+        "estimatedSecondsAt16": 11.884319424629211,
+        "teamBLength": 190.14911079406738,
+        "teamALength": 190.14911079406738,
+        "width": 12
+      }
+    ]
+  }
+}
