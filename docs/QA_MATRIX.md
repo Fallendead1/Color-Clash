@@ -141,7 +141,7 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | SEC-03 | Engine | PASS | extra cost/damage keys rejected; meter < 100 refused; dry gadget free |
 | SEC-04 | Engine | PASS | dead and old-life casts/launches rejected; paint hash unchanged |
 | SEC-10 | Build scan + Engine | PASS | tools/scan_client_surface.py over build/production.rbxlx (59 scripts, 37 client-readable): no credentials/webhooks/loadstring/asset-id requires/RemoteFunctions/debug commands (positive control detects planted items); remote surface == protocol list, no stray remotes |
-| DATA-01 | Engine (memory backend) | PASS (logic) / real DataStore save BLOCKED | Studio API access is disabled for this place ("Studio access to APIs is not allowed"); enable it (Game Settings > Security) to prove the published path |
+| DATA-01 | Engine (memory backend) + real DataStore (Studio, scope "studio") | PASS | perf:PrefsRealSave after API access was enabled: new profile -> sensitivity 1.7, invertY, kit popshot written via UpdateAsync, re-read "ok" with the same values, then restored. Published-server save still part of FINAL-03 |
 | DATA-02 | Engine (memory + real DataStore failure) | PASS | read failure -> usable defaults + notice, nothing written, later edit merges without overwriting the stored profile |
 | DATA-03 | Pure + Engine | PASS | newer schema read-only; invalid values repaired; concurrent-session change survives; patch whitelist |
 | DATA-04 | Engine | PASS | 21-patch burst -> 1 write; failed write reports "failed", keeps the change, later flush succeeds; leave/shutdown flush in code |

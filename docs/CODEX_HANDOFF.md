@@ -92,7 +92,7 @@ Per-phase reports are in `docs/qa/phase-01.md` … `phase-08.md`. The complete m
 | Multi-client | COMBAT-05/07, COMBAT-06 assists, FLOW-11 replacement in grace, FLOW-13 reconnect mid-state, ABIL-07/09 teammate launch and target death, NET-07 moving-player rewind | needs a Studio local-server session with 2–3 clients on the same team (the user starts it) |
 | Eight clients | PERF-02, NET-04/08 at 8 clients | this machine has 15.9 GB RAM and about 0.8 GB free with Studio |
 | Devices | PERF-04, UI-02 multi-touch, UI-05 physical, FINAL-02 | no physical phone or tablet available |
-| Saves | DATA-01 on the real DataStore path | Studio API access is disabled for the place; enable it, or test in a published private server |
+| Saves | published-server save (FINAL-03) | the real DataStore path now passes in Studio (DATA-01); a published private-server check remains |
 | Publishing | FINAL-03 published smoke test, asset permissions in the live experience | publishing not yet authorized |
 | Human play | readability and fun observations (GDD 07.5) | needs real players |
 
