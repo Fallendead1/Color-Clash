@@ -60,3 +60,27 @@ Decision needed (owner): GDD 09.1 targets about 90 studs for combat sightlines a
   120 studs). Either accept elevated long views as the intended long-range positions, or ask Codex to add parapets /
   backstops on the ramp tops and terraces.
 ```
+
+## Third pass — Codex round 2, content v5 (commit 1c56869)
+
+```text
+Scope check: no src/, project or scanner changes; Studio matched tracked v5 (counts 26,620 / 28,156) after the
+  owner's Rojo reconnect; current EffectsController in place.
+Sightlines (Claude's unchanged tools/content/sightline_scan_claude.luau):
+  Switchyard v5: GROUND max 94.7, ELEVATED max 81.0, 0 lines > 95
+  Canopy Courts v5: GROUND max 93.0, ELEVATED max 90.9, 0 lines > 95   -> GDD 09.1 "about 90": PASS
+Suites: verify.ps1 PASS; engine 113/113; client 15/15 on the production UI (wireframe=false, 0 UI errors)
+Soak (20 rounds each, collection nudges on server and client):
+  production run 1: FAIL on the spec's 40 MB threshold (+57 MB after warm-up, 2063 -> 2120 MB; 0 problems otherwise)
+  fixture run (contract fixtures, real UI/models/athlete present): PASS, flat (2277 -> 2283 MB)
+  production run 2: PASS, 2333 -> 2272 MB; engine tags BaseParts +14.3, Instances +5.0, Animation +5.0,
+    Signals +3.5 MB over 20 rounds; Lua heap and Studio Internal fell
+  Codex's run on v5: PASS
+  Reading: the Studio process total is noisy; even the failing run (+2.7 %) is inside the GDD's 5 % target (the
+  spec's 40 MB limit is stricter). A small steady engine-tag creep (~0.7 MB/round BaseParts with production maps,
+  ~0.4 with fixtures) remains OPEN: Lua-side retention is ruled out (all replaced characters collectable, Lua heap
+  flat). Re-measure on a live private server (FINAL-03), where Studio's own memory is not included.
+Status: all Codex follow-up items closed and verified. Remaining Phase 10 gates: published animation/audio IDs
+  (owner) and a playback check of every key; eight-client stress; physical devices; published private-server smoke
+  test incl. the memory re-measure; human playtests.
+```
