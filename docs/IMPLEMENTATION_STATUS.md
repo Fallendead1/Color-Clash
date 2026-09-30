@@ -2,10 +2,11 @@
 
 Milestone target: **Phase 09 production content** (not game complete). Statuses follow GDD 17.1.
 
-**Current project status: PHASE_09_BLOCKED** (2026-09-30). Original native maps, models, UI, icons and effects are
-tracked and implemented; animation/audio sources are authored but unpublished. See `docs/CODEX_CONTENT_REPORT.md`.
-The Phase 09 gate remains open: sightlines exceed the GDD target, the final production soak failed its memory-growth
-assertion, and asset publishing/permissions, clean Studio import and remaining device/multiplayer checks are pending.
+**Current project status: PHASE_10_INTEGRATION_REVIEW** (2026-09-30). Codex follow-up items 1–4 are implemented:
+v4 cover/routes, authoring animations excluded from runtime, bounded character subscriptions and Canopy flank parity.
+See `docs/CODEX_CONTENT_REPORT.md` for current measured evidence and limitations. The owner explicitly deferred
+animation/audio publishing. Full release acceptance still needs published playback and the remaining Phase 10 checks.
+Claude resolved the historical v3 soak failure as uncollected Studio garbage; it is not a current leak finding.
 The prior Phase 00–08 code/fixture evidence is preserved; it is not a production-content acceptance claim.
 
 | Phase | Title | Status | Latest evidence | Current blocker |
@@ -20,8 +21,8 @@ The prior Phase 00–08 code/fixture evidence is preserved; it is not a producti
 | 06 | Core tactical tools | PASS_CODE (solo + real client) | `docs/qa/phase-06.md` | Teammate launch and target-death cases need 2 same-team clients (next multi-client session) |
 | 07 | Player-facing loop | PASS_CODE (wireframe, contract fixtures) | `docs/qa/phase-07.md` | Real DataStore save path BLOCKED (Studio API access off); FLOW-13 reconnect needs multi-client; physical devices BLOCKED |
 | 08 | Harden, profile, Codex handoff | PASS_CODE → CODE_READY_FOR_CODEX | `docs/qa/phase-08.md`, `docs/CODEX_HANDOFF.md` | 8-client stress BLOCKED (memory); devices BLOCKED |
-| 09 | Production assets, maps, UI (Codex) | BLOCKED / incomplete | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/`, `docs/CODEX_FOLLOWUP.md` | Long sightlines; AnimationSources in runtime tree; unpublished animation/audio (owner, at the end). Soak memory failure resolved by Claude (not a leak) |
-| 10 | Claude verifies the actual game | IN PROGRESS | `docs/qa/phase-10.md` | Codex follow-up items 1-4; published animation/audio; 8 clients, devices, published smoke test, playtests |
+| 09 | Production assets, maps, UI (Codex) | CONTENT FOLLOW-UP IMPLEMENTED; publishing deferred | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/`, `docs/CODEX_FOLLOWUP.md` | Owner publishes the 26 animations and 34 sounds later; full content acceptance remains open |
+| 10 | Claude verifies the actual game | IN PROGRESS | `docs/qa/phase-10.md`, current Codex content report | Review v4 content evidence; published animation/audio; 8 clients, devices, published smoke test, playtests |
 
 ## Project identity (ENV-01)
 

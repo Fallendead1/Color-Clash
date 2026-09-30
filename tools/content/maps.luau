@@ -1,5 +1,6 @@
 -- Original, mirrored arena-sport layouts. Rebuild with tools/build_content.
 local C = require("./common")
+local coverLayouts = require("./cover_layouts")
 local R = C.R
 local N = C.new
 local charcoal = { 36, 48, 54 }
@@ -31,7 +32,7 @@ end
 local function build(id, display, w, d, bx, canopy)
 	local root = N("Model", display, nil, nil, {
 		MapId = id,
-		MapVersion = 3,
+		MapVersion = 4,
 		ContractVersion = 1,
 		DisplayName = display,
 		IsFixture = false,
@@ -202,6 +203,35 @@ local function build(id, display, w, d, bx, canopy)
 			{ side * 40, 6, -d / 2 + 1.15 },
 			charcoal
 		)
+	end
+	-- Explicit mirrored chicanes constrain diagonal lanes while preserving reviewed routes.
+	local layout = coverLayouts[id]
+	root:SetAttribute("RouteReview", layout.routes)
+	for _, p in g:GetChildren() do
+		if
+			p.Name:match("^BaseBaffle")
+			or p.Name:match("^UtilityIsland")
+			or p.Name:match("^SightScreen")
+			or p.Name:match("^FlankBaffle")
+		then
+			p:Destroy()
+		end
+	end
+	for _, p in decor:GetChildren() do
+		if
+			p.Name:match("^BaseBaffleCap")
+			or p.Name:match("^TeamSign")
+			or p.Name:match("^IslandCap")
+			or p.Name:match("^IslandRib")
+			or p.Name:match("^ScreenCap")
+		then
+			p:Destroy()
+		end
+	end
+	for _, box in layout.boxes do
+		local name, x, z, sx, h, sz = table.unpack(box)
+		C.part(g, name, { sx, h, sz }, { x, h / 2, z }, charcoal)
+		C.cosmetic(decor, name .. "Trim", { sx, 0.15, sz }, { x, h + 0.075, z }, if canopy then teal else orange)
 	end
 	local below = C.cosmetic(vol, "RecoveryBelow", { w + 40, 12, d + 40 }, { 0, -18, 0 }, cream)
 	below.Transparency = 1

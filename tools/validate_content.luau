@@ -8,7 +8,7 @@ local function read(path) return R.deserializeModel(fs.readFile(path))[1] end
 local assets=read("assets/presentation/ColorClashAssets.rbxmx")
 local maps=read("assets/maps/ColorClashMaps.rbxmx")
 local gui=read("assets/ui/ColorClashUI.rbxmx")
-local report={contractVersion=1,contentVersion=1,maps={},weapons={},animations={},effects={},externalAssetIds={},blockers={"Animation sources require publishing and live permission verification","Original audio WAVs require upload and live permission verification","Physical-device and 8-client checks not run","Map v3 sampled sightlines exceed the GDD target; see routes-v3.json","Map v3 production soak failed memory growth assertion; see soak-v3.json"}}
+local report={contractVersion=1,contentVersion=2,maps={},weapons={},animations={},effects={},externalAssetIds={},blockers={"Owner deferred animation publishing and live permission verification","Owner deferred audio publishing and live permission verification","Physical-device and 8-client checks not run"}}
 local _,errors=UI.validate(gui)
 assert(#errors==0,table.concat(errors,"; "))
 assert(gui:GetAttribute("IsWireframe")==false)
@@ -23,6 +23,10 @@ for _,m in maps:GetChildren() do
         assert(p.Anchored and p.CanCollide)
     end
     local count=0
+    local banks={}
+    for _,p in m.Geometry:GetChildren() do
+        if p.Name:match("^UtilityBank") then assert(not banks[p.Name],"duplicate utility bank") banks[p.Name]=true end
+    end
     for _,p in m:GetDescendants() do
         assert(not p:IsA("LuaSourceContainer"),"map includes executable code")
         if p:IsA("BasePart") then count+=1 end
@@ -41,7 +45,11 @@ for _,m in assets.Weapons:GetChildren() do
     assert(count*256<=8000)
     report.weapons[m.Name]={parts=count,conservativeTriangleBound=count*256}
 end
-for _,seq in assets.AnimationSources:GetChildren() do
+assert(not assets:FindFirstChild("AnimationSources"),"authoring sources shipped in runtime assets")
+for _,d in assets:GetDescendants() do assert(not d:IsA("KeyframeSequence") and not d:IsA("Pose"),"authoring pose shipped to clients") end
+local animationSources=read("assets/animation_sources/AnimationSources.rbxmx")
+assert(#animationSources:GetChildren()==26,"publishing sources must be preserved")
+for _,seq in animationSources:GetChildren() do
     assert(seq:IsA("KeyframeSequence"))
     local duration=seq:GetAttribute("Duration")
     local last=0 local fire={}

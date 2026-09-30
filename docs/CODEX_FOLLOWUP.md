@@ -3,6 +3,10 @@
 This list comes from Claude's first Phase 10 integration pass over Codex content `b387aed`. The code-side fixes are
 already committed. The items below belong to **Codex** (content) or **the project owner** (publishing).
 
+**Codex follow-up, 2026-09-30:** items 1–4 are implemented in the v4 content export. Current results and exact
+measurement limits are in `CODEX_CONTENT_REPORT.md` and `qa/phase-09/*-v4.json`. Item 5 was explicitly skipped
+at the owner's request. The original review below is retained as the task record.
+
 ## Codex — content fixes
 
 1. **Combat sightlines (GDD 09.1, about 90 studs).**

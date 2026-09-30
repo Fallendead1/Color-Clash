@@ -112,6 +112,27 @@ connect(gui.DescendantAdded, function(d)
 	end
 end)
 local gears = {}
+local characterConnections = {}
+local function updateCharacterConnectionCount()
+	local count = 0
+	for _, list in characterConnections do
+		count += #list
+	end
+	gui:SetAttribute("PresentationCharacterConnections", count)
+end
+local function removeCharacter(char)
+	local list = characterConnections[char]
+	characterConnections[char] = nil
+	for _, c in list or {} do
+		c:Disconnect()
+	end
+	local gear = gears[char]
+	gears[char] = nil
+	if gear then
+		gear:Destroy()
+	end
+	updateCharacterConnectionCount()
+end
 local function recolor()
 	for char, gear in gears do
 		if gear.Parent then
@@ -134,7 +155,7 @@ local function recolor()
 end
 local function character(char)
 	local torso = char:WaitForChild("UpperTorso", 10)
-	if not torso or not assets or not gui.Parent or char:FindFirstChild("CCAthleteGear") then
+	if not torso or not char.Parent or not assets or not gui.Parent or char:FindFirstChild("CCAthleteGear") then
 		return
 	end
 	local template = assets.Character:FindFirstChild("AthleteGear")
@@ -174,12 +195,24 @@ local function character(char)
 	text.TextScaled = true
 	text.Font = Enum.Font.GothamBold
 	text.Parent = badge
-	connect(char:GetAttributeChangedSignal("CCTeam"), recolor)
-	connect(char.AncestryChanged, function(_, parent)
-		if not parent then
-			gears[char] = nil
-		end
-	end)
+	local list = {}
+	characterConnections[char] = list
+	table.insert(list, char:GetAttributeChangedSignal("CCTeam"):Connect(recolor))
+	table.insert(
+		list,
+		char.AncestryChanged:Connect(function(_, parent)
+			if not parent then
+				removeCharacter(char)
+			end
+		end)
+	)
+	table.insert(
+		list,
+		char.Destroying:Connect(function()
+			removeCharacter(char)
+		end)
+	)
+	updateCharacterConnectionCount()
 	recolor()
 end
 local function watch(p)
@@ -336,7 +369,7 @@ connect(gui.Destroying, function()
 	for _, c in connections do
 		c:Disconnect()
 	end
-	for _, gear in gears do
-		gear:Destroy()
+	for char in characterConnections do
+		removeCharacter(char)
 	end
 end)

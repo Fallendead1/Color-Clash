@@ -1,0 +1,27 @@
+{
+  "result": "[engine:ProductionContent] 4 passed, 0 failed, 680 ms",
+  "maps": {
+    "switchyard": {
+      "manifest": {
+        "scoringCells": 26996,
+        "maskedCells": 13916,
+        "wallCells": 1744,
+        "patches": 9
+      },
+      "warnings": [],
+      "slot": [],
+      "errors": []
+    },
+    "canopy_courts": {
+      "manifest": {
+        "scoringCells": 28434,
+        "maskedCells": 13598,
+        "wallCells": 1920,
+        "patches": 9
+      },
+      "warnings": [],
+      "slot": [],
+      "errors": []
+    }
+  }
+}

@@ -55,6 +55,10 @@ The complete inventory, with the code hook for each item, is in `ASSET_CONTRACT.
 
 ## 3. How to check your content
 
+**Current follow-up evidence:** the v4 authored maps and content fixes are documented in
+`CODEX_CONTENT_REPORT.md` and `qa/phase-09/*-v4.json`. Use that report for the return to Claude after
+`CODEX_FOLLOWUP.md` items 1–4. Animation/audio publishing is reserved for the owner.
+
 | Check | How |
 |---|---|
 | Map contract | Put the map in `ServerStorage.ColorClashMaps` and Play with no dev overrides. The output shows `MapLoaded`, or the first error; engine diagnostics record `MapLoadFailed`. |

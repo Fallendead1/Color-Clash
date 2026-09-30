@@ -1,0 +1,108 @@
+{
+  "switchyard": [
+    {
+      "paritySeconds": 0.0011519999970914796,
+      "pass": true,
+      "name": "center",
+      "walks": [
+        {
+          "seconds": 11.050685800000792,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.049533800003701,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0024412000057054684,
+      "pass": true,
+      "name": "terrace_flank",
+      "walks": [
+        {
+          "seconds": 11.798967800001265,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.80140900000697,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.002368500005104579,
+      "pass": true,
+      "name": "covered_flank",
+      "walks": [
+        {
+          "seconds": 13.615123499999754,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 13.617492000004859,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    }
+  ],
+  "canopy_courts": [
+    {
+      "paritySeconds": 0.018644599986146204,
+      "pass": true,
+      "name": "center",
+      "walks": [
+        {
+          "seconds": 10.19904900000256,
+          "reached": true,
+          "side": 1
+        },
+        {
+          "seconds": 10.217693599988706,
+          "reached": true,
+          "side": -1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.0025405999913346022,
+      "pass": true,
+      "name": "terrace_flank",
+      "walks": [
+        {
+          "seconds": 11.63309709999885,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.635637699990184,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    },
+    {
+      "paritySeconds": 0.00233650000882335,
+      "pass": true,
+      "name": "covered_flank",
+      "walks": [
+        {
+          "seconds": 11.681674499996006,
+          "reached": true,
+          "side": -1
+        },
+        {
+          "seconds": 11.68401100000483,
+          "reached": true,
+          "side": 1
+        }
+      ]
+    }
+  ]
+}

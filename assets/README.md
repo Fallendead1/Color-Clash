@@ -10,7 +10,7 @@ These are original project-authored Roblox primitives, native UI, R15 pose clips
 | `presentation/ColorClashAssets.rbxmx` | `ReplicatedStorage.ColorClashAssets` |
 | `ui/ColorClashUI.rbxmx` | `StarterGui.ColorClashUI` |
 | `staging/ColorClashStaging.rbxmx` | `Workspace.ColorClashStaging` |
-| `animation_sources/AnimationSources.rbxmx` | Source export; also included inside ColorClashAssets.AnimationSources |
+| `animation_sources/AnimationSources.rbxmx` | Publishing source only; excluded from both runtime projects |
 
 Rebuild models and UI with `lune run tools/build_content`. Rebuild the 34 original WAVs with `tools/.venv/Scripts/python.exe tools/content/audio.py`. Run `lune run tools/validate_content` and `powershell -ExecutionPolicy Bypass -File tools/verify.ps1` afterwards. Map geometry changes require a new MapVersion and fresh Studio-derived counts in `map_counts.json`; never estimate those counts.
 
@@ -27,4 +27,4 @@ Rebuild models and UI with `lune run tools/build_content`. Rebuild the 34 origin
 
 Upload the original clips and WAVs under the experience owner through an available authenticated Roblox publishing workflow. Record each returned real ID, creator, permission grant, source file, upload date and target-place load result. Add Animation/Sound instances using the exact contract keys to the content builder, then regenerate the `.rbxmx`; Studio-only edits will be lost on rebuild. Retain default Roblox locomotion until replacement clips are published and reviewed. Verify playback and moderation status in the target live experience before changing the Phase 09 status.
 
-The extra effect templates `Impact`, `ChargeReady`, `ShieldHit`, `LaunchTransit`, `LaunchLanding` and `ResultsCue`, and extra source clips beyond the contract keys, still need presentation dispatch review. They must not introduce gameplay state or alter timing. Existing warning/range/paint rendering remains code-owned.
+Claude added dispatch for the extra effects, sounds and animation keys during Phase 10. Animation/audio playback remains pending the owner's publication of genuine IDs. Existing warning/range/paint rendering remains code-owned.

@@ -196,13 +196,11 @@
     }
   },
   "blockers": [
-    "Animation sources require publishing and live permission verification",
-    "Original audio WAVs require upload and live permission verification",
-    "Physical-device and 8-client checks not run",
-    "Map v3 sampled sightlines exceed the GDD target; see routes-v3.json",
-    "Map v3 production soak failed memory growth assertion; see soak-v3.json"
+    "Owner deferred animation publishing and live permission verification",
+    "Owner deferred audio publishing and live permission verification",
+    "Physical-device and 8-client checks not run"
   ],
-  "contentVersion": 1,
+  "contentVersion": 2,
   "contractVersion": 1,
   "effects": {
     "Beam": {
@@ -301,18 +299,18 @@
   "externalAssetIds": {},
   "maps": {
     "canopy_courts": {
-      "mapVersion": 3,
-      "nativeParts": 173,
+      "mapVersion": 4,
+      "nativeParts": 323,
       "patches": 9,
-      "scoringCells": 32704,
-      "wallCells": 2240
+      "scoringCells": 28434,
+      "wallCells": 1920
     },
     "switchyard": {
-      "mapVersion": 3,
-      "nativeParts": 165,
+      "mapVersion": 4,
+      "nativeParts": 287,
       "patches": 9,
-      "scoringCells": 31530,
-      "wallCells": 2064
+      "scoringCells": 26996,
+      "wallCells": 1744
     }
   },
   "ui": {

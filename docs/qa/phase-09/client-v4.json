@@ -1,0 +1,7 @@
+{
+  "connections": 3,
+  "errors": 0,
+  "layout": "",
+  "result": "[client:all] 3 specs, 6618 ms\n15 passed, 0 failed, 15 total",
+  "wireframe": false
+}

@@ -13,7 +13,7 @@ print("Exported original arenas and staging")
 local presentation=require("./content/presentation")()
 local animations=require("./content/animations")()
 fs.writeFile("assets/animation_sources/AnimationSources.rbxmx",R.serializeModel({animations},true))
-animations.Parent=presentation
+-- KeyframeSequences are publishing sources only; never replicate authoring poses to players.
 fs.writeFile("assets/presentation/ColorClashAssets.rbxmx",R.serializeModel({presentation},true))
 print("Exported seven weapons, athlete appearance and presentation effects")
 local gui=require("./content/ui_finish")(require("./content/ui").build())

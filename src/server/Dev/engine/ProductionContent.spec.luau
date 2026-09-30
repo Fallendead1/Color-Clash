@@ -4,6 +4,13 @@ return function(t)
 	local L = require(game.ServerScriptService.Server.Map.MapLoader)
 	local W = require(game.ServerScriptService.Server.Presentation.WeaponModels)
 	local records = {}
+	it("CONTENT-04 authoring poses are absent from the runtime library", function()
+		local lib = game.ReplicatedStorage.ColorClashAssets
+		expect(lib:FindFirstChild("AnimationSources") == nil):toBe(true)
+		for _, d in lib:GetDescendants() do
+			expect(d:IsA("KeyframeSequence") or d:IsA("Pose")):toBe(false)
+		end
+	end)
 	it("CONTENT-01 both production maps load, fit their slots and have no warnings", function()
 		local maps = game.ServerStorage:FindFirstChild("ColorClashMaps")
 		expect(maps ~= nil):toBe(true)
