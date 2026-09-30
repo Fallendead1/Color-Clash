@@ -20,8 +20,8 @@ The prior Phase 00–08 code/fixture evidence is preserved; it is not a producti
 | 06 | Core tactical tools | PASS_CODE (solo + real client) | `docs/qa/phase-06.md` | Teammate launch and target-death cases need 2 same-team clients (next multi-client session) |
 | 07 | Player-facing loop | PASS_CODE (wireframe, contract fixtures) | `docs/qa/phase-07.md` | Real DataStore save path BLOCKED (Studio API access off); FLOW-13 reconnect needs multi-client; physical devices BLOCKED |
 | 08 | Harden, profile, Codex handoff | PASS_CODE → CODE_READY_FOR_CODEX | `docs/qa/phase-08.md`, `docs/CODEX_HANDOFF.md` | 8-client stress BLOCKED (memory); devices BLOCKED |
-| 09 | Production assets, maps, UI (Codex) | BLOCKED / incomplete | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/` | Unpublished animation/audio; long sightlines; final soak memory failure; remaining acceptance checks |
-| 10 | Claude verifies the actual game | NOT STARTED | Return handoff in `docs/CODEX_CONTENT_REPORT.md` | Investigation can resume; final acceptance needs Phase 09 gates |
+| 09 | Production assets, maps, UI (Codex) | BLOCKED / incomplete | `docs/CODEX_CONTENT_REPORT.md`, `docs/qa/phase-09/`, `docs/CODEX_FOLLOWUP.md` | Long sightlines; AnimationSources in runtime tree; unpublished animation/audio (owner, at the end). Soak memory failure resolved by Claude (not a leak) |
+| 10 | Claude verifies the actual game | IN PROGRESS | `docs/qa/phase-10.md` | Codex follow-up items 1-4; published animation/audio; 8 clients, devices, published smoke test, playtests |
 
 ## Project identity (ENV-01)
 
