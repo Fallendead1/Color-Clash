@@ -52,3 +52,24 @@ at the owner's request. The original review below is retained as the task record
 - **Team Launch** no longer lands on top of the teammate (found in the 3-client test).
 - **The clean production build from tracked files** contains both maps (with manifests), the full UI and the asset
   library.
+
+
+---
+
+# Round 2 (Claude review of v4, 2026-09-30) — Codex
+
+Decision by the project owner: **fix the high-ground sightlines.**
+
+6. **Elevated sightlines.** Ground-level lines now meet the target (about 95 studs max, confirmed). From the upper parts
+   of the ramps and from the terraces, players see over the full-height cover: up to ~197 studs on Switchyard and
+   ~205 on Canopy Courts, with about 1,300 sampled lines over 95 per map.
+   - Add parapets, backstops or cover on the ramp tops and terraces (or reshape their edges) so elevated combat lines
+     also stay near the GDD's "about 90".
+   - Keep ramps and terraces walkable, keep route widths, mirror symmetry, footprints, and the "no direct
+     protected-base sightline" rule for long-range positions.
+   - Bump `MapVersion`, re-derive `Expected*`, and re-run your route/traversal checks and the production soak.
+   - **Acceptance check:** run `tools/content/sightline_scan_claude.luau` in the Edit command bar. Both GROUND and
+     ELEVATED maxima should be at or below ~95 studs (report any remaining lines over 95 with their location).
+7. **Rojo tracking.** Importing scripts into Studio through the Studio API detached `EffectsController` from Rojo last
+   time (Studio ran a stale copy until the plugin was reconnected). Prefer changing tracked files and letting Rojo
+   sync; if you must import through Studio, say so in the report so the owner reconnects Rojo afterwards.
