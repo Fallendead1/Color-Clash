@@ -54,6 +54,8 @@ return table.freeze({
 	OutcomeDraw = "Draw",
 	OutcomeNoContest = "Round ended — not enough players",
 	CoverageLine = "%s  ·  %s  ·  neutral %s",
+	ScoreboardHeader = "Paint Contribution (floor you converted — not final area, not the winner) · E · A · D",
+	ScoreboardRow = "%s   %d   ·   %d / %d / %d",
 	ContributionTooltip = "Paint Contribution counts floor you converted during the match. It can exceed the final area because floor gets reclaimed. It does not decide the winner.",
 
 	LowPaint = "Low paint",
@@ -69,6 +71,7 @@ return table.freeze({
 	NoticeVacancy = "A team is empty — play paused (15 s)",
 	NoticeLoadingFailed = "Match loading failed — returning to staging",
 	NoticeSaveFailed = "Settings couldn't be saved; they'll apply this session",
+	NoticePrefsUnavailable = "Saved settings couldn't be loaded — using defaults this session",
 	NoticeConnection = "Connection delayed",
 
 	TeamNames = { [1] = "Team A", [2] = "Team B" },

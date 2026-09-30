@@ -31,7 +31,8 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | FLOW-10 | Pure + 3 real clients | PASS | <= 60 s left: stays in staging |
 | FLOW-11 | Pure | PASS (pure) | real replacement-in-grace NOT RUN |
 | FLOW-12 | Pure + real clients | PASS | real kick -> pause (clock frozen) -> NoContest |
-| FLOW-13, FLOW-14 | — | NOT RUN | |
+| FLOW-13 | — | NOT RUN | reconnect during loading/results/reset needs a client joining mid-state (multi-client session) |
+| FLOW-14 | Perf (contract fixtures, solo) | PASS | perf:RoundSoak 20/20 rounds: maps alternate every round, 7 kits reselected and locked, no entity/arena leftovers, memory -0.5 MB, 0 hash mismatches, 0 handler errors |
 
 ## 18.2 Painting and movement
 
@@ -105,11 +106,17 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | UI-01 | Client | PASS | UIInput.spec |
 | UI-02 | — | BLOCKED | real multi-touch unavailable (no touch injection/device) |
 | UI-03 | Engine | PASS (server) | one confirmed selection, locked live; client Equip double-submit guard in UIController |
-| UI-04..10 | — | NOT RUN | |
+| UI-04 | Client (simulated gamepad device) | PASS | every panel gets a gamepad selection inside it and closes with B; staging buttons selectable; defects fixed: B did nothing, selection set before layout |
+| UI-05 | Client (wireframe layout at 6 viewports) | PASS (wireframe) | buttons on screen and >= 48 px, touch cluster non-overlapping at 1920x1080..740x360, CoreUISafeInsets; defect fixed: Jump overlapped Fire. Physical devices NOT RUN; Codex re-runs on production UI |
+| UI-06 | Client | PASS | 8-player synthetic roster: 4/4 grouping, contribution order, 42-char names truncated in bounds, empty roster; 30 % longer status text scales |
+| UI-07 | Engine + real client | PASS | map open/close restores context; every launch rejection shows its reason; teammate-only markers (no enemy ESP) |
+| UI-08 | Client + Engine | PASS (code paths) | connection notice (2 slow samples, 30 s rate limit); save failure notice; read-failure notice on the real DataStore path; loading stages from Phase 04 |
+| UI-09 | Real client (death during open panels) | PASS | map closes on death, Settings stays consistent, elimination shown, fresh HUD, Gameplay restored; reconnect variant NOT RUN (multi-client) |
+| UI-10 | Client | PASS | restructured non-wireframe UI (different hierarchy/names, same keys) adopted; handlers, settings rows and touch rebound; swapped back |
 | MAP-01 | Pure + Engine + real client | PASS | projection totals == grid totals on server and client; 0 stacked pixels; base floors absent |
-| MAP-02 | Pure + Studio | PASS (fixture iterations) | duplicate id, budget, stacked scoring, hidden floor rejected |
-| MAP-03 | Studio | PASS (fixtures) | paint_lab/stress_lab spawns, clearance, sightline |
-| MAP-04 | — | NOT RUN | |
+| MAP-02 | Engine (fixtures) | PASS | missing/duplicate SurfaceId, off-grid face, manifest count mismatch, production map without manifest: precise reports |
+| MAP-03 | Engine (contract fixtures) | PASS | both manifest slots validate; unknown slot, off-centre base, footprint, unmirrored area, opposing-spawn sightline rejected |
+| MAP-04 | Engine (contract fixtures) | PASS | scoring cells in OOB, climb face topping into OOB, spawn in OOB rejected |
 | CONTENT-01..08 | — | NOT RUN | Codex Phase 09 |
 
 ## 18.5 Network, security, saves and performance
@@ -128,7 +135,10 @@ Runners: `lune run tests/run`; `tools/verify.ps1`; Studio attribute runners (`CC
 | SEC-03 | Engine | PASS | extra cost/damage keys rejected; meter < 100 refused; dry gadget free |
 | SEC-04 | Engine | PASS | dead and old-life casts/launches rejected; paint hash unchanged |
 | SEC-10 | — | NOT RUN (Phase 08) | |
-| DATA-01..04 | — | NOT RUN | Phase 07 |
+| DATA-01 | Engine (memory backend) | PASS (logic) / real DataStore save BLOCKED | Studio API access is disabled for this place ("Studio access to APIs is not allowed"); enable it (Game Settings > Security) to prove the published path |
+| DATA-02 | Engine (memory + real DataStore failure) | PASS | read failure -> usable defaults + notice, nothing written, later edit merges without overwriting the stored profile |
+| DATA-03 | Pure + Engine | PASS | newer schema read-only; invalid values repaired; concurrent-session change survives; patch whitelist |
+| DATA-04 | Engine | PASS | 21-patch burst -> 1 write; failed write reports "failed", keeps the change, later flush succeeds; leave/shutdown flush in code |
 | PERF-01 | Engine + Client (desktop Studio) | PASS (desktop) / mobile BLOCKED | stress_lab measurements in qa/phase-02.md |
 | PERF-02..05 | — | NOT RUN | |
 | OBS-01..03 | — | NOT RUN | |

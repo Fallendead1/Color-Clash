@@ -23,6 +23,9 @@ local panelStack: { string } = {}
 local input = nil
 local pending: { [string]: boolean } = {}
 local panelListeners: { (string?, string?) -> () } = {}
+local handlers: { [string]: () -> () } = {} -- key -> guarded handler (survives a UI swap)
+local connections: { [string]: RBXScriptConnection } = {}
+local adoptListeners: { () -> () } = {}
 
 local PANELS = {
 	Armory = "Armory.Root",
@@ -62,6 +65,12 @@ function UIController.start(inputController)
 	end
 	player:SetAttribute("CCUIWireframe", isWireframe)
 	player:SetAttribute("CCUIErrors", #validationErrors)
+	-- Cancel / gamepad B closes the top panel (every screen escapable without a mouse; GDD 12.4, UI-04)
+	inputController.onAction(function(action: string, down: boolean)
+		if action == "Cancel" and down and #panelStack > 0 then
+			UIController.closePanel()
+		end
+	end)
 end
 
 function UIController.get(key: string): any
@@ -109,24 +118,86 @@ end
 
 -- Binds a button. While `fn` runs (it may yield waiting for a server answer) the button is pending and extra
 -- activations are ignored — Equip and Ready cannot double-submit (GDD 12.4).
-function UIController.onActivated(key: string, fn: () -> ())
-	local inst = keys[key]
-	if not inst or not inst:IsA("GuiButton") then
-		return
+local function connect(key: string)
+	local old = connections[key]
+	if old then
+		old:Disconnect()
+		connections[key] = nil
 	end
-	inst.Activated:Connect(function()
-		if pending[key] then
+	local inst = keys[key]
+	if inst and inst:IsA("GuiButton") and handlers[key] then
+		connections[key] = inst.Activated:Connect(handlers[key])
+	end
+end
+
+function UIController.onActivated(key: string, fn: () -> ())
+	handlers[key] = function()
+		local inst = keys[key]
+		if pending[key] or (inst and inst:GetAttribute("Disabled") == true) then
 			return
 		end
 		pending[key] = true
-		inst:SetAttribute("Pending", true)
+		if inst then
+			inst:SetAttribute("Pending", true)
+		end
 		local ok, err = pcall(fn)
 		pending[key] = nil
-		inst:SetAttribute("Pending", false)
+		if inst then
+			inst:SetAttribute("Pending", false)
+		end
 		if not ok then
 			warn("[ColorClash] UI action " .. key .. " failed: " .. tostring(err))
 		end
-	end)
+	end
+	connect(key)
+end
+
+-- Runs a bound button's handler through the same guarded path as a click/tap/gamepad press (tests, accessibility).
+function UIController.activate(key: string): boolean
+	local h = handlers[key]
+	local inst = keys[key]
+	if not h or not inst or inst:GetAttribute("Disabled") == true then
+		return false
+	end
+	h()
+	return true
+end
+
+-- Swaps to another UI root that satisfies the same contract (UI-10: Codex's production UI replacing the wireframe,
+-- or any later hot swap). Every handler is rebound by key; nothing depends on the old hierarchy.
+function UIController.adopt(gui: ScreenGui): (boolean, { string })
+	local found, errors = UIContract.validate(gui)
+	if #errors > 0 then
+		return false, errors
+	end
+	local old = root
+	root = gui
+	keys = found
+	isWireframe = gui:GetAttribute("IsWireframe") == true
+	validationErrors = {}
+	if gui.Parent == nil then
+		gui.Parent = player:WaitForChild("PlayerGui")
+	end
+	gui.Enabled = true
+	for key in handlers do
+		connect(key)
+	end
+	for name, k in PANELS do
+		UIController.setVisible(k, panelStack[#panelStack] == name)
+	end
+	if old and old ~= gui then
+		old.Enabled = false
+	end
+	player:SetAttribute("CCUIWireframe", isWireframe)
+	player:SetAttribute("CCUIErrors", 0)
+	for _, fn in adoptListeners do
+		task.spawn(fn)
+	end
+	return true, {}
+end
+
+function UIController.onAdopted(fn: () -> ())
+	table.insert(adoptListeners, fn)
 end
 
 function UIController.setEnabled(key: string, enabled: boolean)
@@ -210,7 +281,25 @@ function UIController.openPanel(name: string)
 	end
 	refreshContext()
 	if input.device() == "Gamepad" then
-		GuiService.SelectedObject = firstButton(keys[key])
+		-- a panel made visible this frame is not yet selectable: select once it is laid out (retry briefly)
+		task.spawn(function()
+			for _ = 1, 10 do
+				task.wait(0.03)
+				if panelStack[#panelStack] ~= name then
+					return
+				end
+				local target = firstButton(keys[key])
+				if not target then
+					return
+				end
+				pcall(function()
+					GuiService.SelectedObject = target
+				end)
+				if GuiService.SelectedObject == target then
+					return
+				end
+			end
+		end)
 	end
 	for _, fn in panelListeners do
 		task.spawn(fn, name, "open")

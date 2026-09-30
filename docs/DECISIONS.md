@@ -119,3 +119,19 @@ GDD values stay authoritative unless a decision here changes them.
 - **Reason:** GDD 08.4 defines the timing and the rules, not the presentation. Codex supplies the transit/landing art
   on top of these cues.
 - **Affected tests:** ABIL-03, ABIL-07, ABIL-09, WEAPON-08 (screens).
+
+## D-012 — Preference persistence policy and UI swap
+
+- **Decision (persistence):**
+  - DataStore `ColorClashPrefs_v1` with scope `studio` in Studio and `live` otherwise, so test keys never touch live data.
+  - Every write is an `UpdateAsync` that merges only this session's changed fields into the latest stored copy.
+  - Because of that merge, a session that could not read its profile may still save edits: it never writes defaults and
+    never replaces the unknown profile.
+  - A stored profile with a newer schema makes the session read-only.
+  - Writes are debounced by 4 s, retried 3 times, and flushed on leave and on shutdown (20 s bound).
+- **Reason:** GDD 11.6 forbids overwriting an unknown profile with defaults and requires debounced, bounded writes.
+  Merging only changed fields also satisfies the concurrent-session requirement.
+- **Decision (UI swap):** `UIController.adopt(gui)` validates another root against the contract and rebinds every
+  handler by key. Touch buttons and settings rows are rebuilt as well. Button logic runs through the same guarded path
+  from clicks, gamepad, touch, and `UIController.activate(key)` (used by tests).
+- **Affected tests:** DATA-01..04, UI-10.

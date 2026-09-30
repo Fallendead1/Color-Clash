@@ -24,6 +24,7 @@ type Record = {
 
 local records: { [Player]: Record } = {}
 local net, diagnostics, round
+local character, paintService -- live scoreboard stats (read only)
 local tieSide = 1
 local rosterDirty = false
 
@@ -38,6 +39,8 @@ function TeamService:Init(ctx)
 	net = ctx.services.NetService
 	diagnostics = ctx.services.DiagnosticsService
 	round = ctx.services.RoundService
+	character = ctx.services.CharacterService
+	paintService = ctx.services.PaintService
 end
 
 local function onJoin(player: Player)
@@ -75,10 +78,13 @@ function TeamService:Start()
 		end
 	end)
 	task.spawn(function()
+		local tick = 0
 		while true do
 			task.wait(1)
+			tick += 1
 			TeamService.tickIdle(os.clock())
-			if rosterDirty then
+			-- live stats refresh every 2 s during a match (scoreboard); immediately on roster changes
+			if rosterDirty or (tick % 2 == 0 and round and round.isMatchActive()) then
 				rosterDirty = false
 				net.fireAll("Roster", TeamService.roster())
 			end
@@ -246,12 +252,17 @@ end
 function TeamService.roster(): { any }
 	local list = {}
 	for player, rec in records do
+		local s = if character then character.stats(player) else nil
 		table.insert(list, {
 			userId = player.UserId,
 			name = player.DisplayName,
 			team = rec.team,
 			ready = rec.ready,
 			participating = rec.participating,
+			eliminations = s and s.eliminations or 0,
+			assists = s and s.assists or 0,
+			deaths = s and s.deaths or 0,
+			paint = if paintService then paintService.contributionOf(player) else 0,
 		})
 	end
 	table.sort(list, function(a, b)

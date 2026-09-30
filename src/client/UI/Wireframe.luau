@@ -180,6 +180,7 @@ function Wireframe.build(): ScreenGui
 	row.Visible = false
 	label(row, "Name", "", UDim2.fromScale(0.5, 1), UDim2.new(), 20).TextXAlignment = Enum.TextXAlignment.Left
 	button(row, "Value", "", UDim2.fromScale(0.44, 0.9), UDim2.fromScale(0.54, 0.05))
+	key(label(settings, "Status", "", UDim2.fromScale(0.7, 0.08), UDim2.fromScale(0.03, 0.88), 16), "Settings.Status").TextXAlignment = Enum.TextXAlignment.Left
 	key(button(settings, "Close", Strings.Close, UDim2.fromScale(0.2, 0.1), UDim2.fromScale(0.77, 0.87)), "Settings.Close")
 
 	-- HUD
@@ -214,12 +215,14 @@ function Wireframe.build(): ScreenGui
 		b.BackgroundTransparency = 0.25
 		return b
 	end
-	tbtn("Primary", "Touch.Primary", "FIRE", 88, UDim2.new(1, -120, 1, -150))
-	tbtn("Secondary", "Touch.Secondary", "ALT", 60, UDim2.new(1, -205, 1, -110))
-	tbtn("Glide", "Touch.Glide", "GLIDE", 60, UDim2.new(1, -205, 1, -190))
-	tbtn("Jump", "Touch.Jump", "JUMP", 64, UDim2.new(1, -100, 1, -60 - 12))
-	tbtn("Gadget", "Touch.Gadget", "GADGET", 56, UDim2.new(1, -120, 1, -230))
-	tbtn("Ultimate", "Touch.Ultimate", "ULT", 56, UDim2.new(1, -60, 1, -230))
+	-- right-thumb cluster, no overlaps down to 740x360 (UI-05): Fire above Jump, Secondary/Glide left of Fire,
+	-- Gadget/Ultimate above Fire
+	tbtn("Primary", "Touch.Primary", "FIRE", 88, UDim2.new(1, -120, 1, -160))
+	tbtn("Jump", "Touch.Jump", "JUMP", 64, UDim2.new(1, -110, 1, -68))
+	tbtn("Secondary", "Touch.Secondary", "ALT", 60, UDim2.new(1, -205, 1, -120))
+	tbtn("Glide", "Touch.Glide", "GLIDE", 60, UDim2.new(1, -205, 1, -200))
+	tbtn("Gadget", "Touch.Gadget", "GADGET", 56, UDim2.new(1, -124, 1, -240))
+	tbtn("Ultimate", "Touch.Ultimate", "ULT", 56, UDim2.new(1, -60, 1, -240))
 	tbtn("Map", "Touch.Map", "MAP", 48, UDim2.new(1, -60, 0, 70))
 
 	-- Tactical map
@@ -236,7 +239,7 @@ function Wireframe.build(): ScreenGui
 	local board = panel(gui, "Scoreboard", "Scoreboard.Root", UDim2.fromScale(0.8, 0.7))
 	key(scroll(board, "TeamA", UDim2.fromScale(0.47, 0.86), UDim2.fromScale(0.02, 0.1)), "Scoreboard.TeamA")
 	key(scroll(board, "TeamB", UDim2.fromScale(0.47, 0.86), UDim2.fromScale(0.51, 0.1)), "Scoreboard.TeamB")
-	label(board, "Header", "Paint contribution · Eliminations · Assists · Deaths", UDim2.fromScale(0.96, 0.07), UDim2.fromScale(0.02, 0.015), 18)
+	key(label(board, "Header", "Paint contribution · Eliminations · Assists · Deaths", UDim2.fromScale(0.96, 0.07), UDim2.fromScale(0.02, 0.015), 18), "Scoreboard.Header")
 	local srow = key(label(board, "RowTemplate", "", UDim2.new(1, -10, 0, 40), UDim2.new(), 18), "Scoreboard.RowTemplate")
 	srow.Visible = false
 

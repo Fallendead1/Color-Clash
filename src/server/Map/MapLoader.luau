@@ -10,6 +10,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Surface = require(Shared.Paint.Surface)
 local PaintGrid = require(Shared.Paint.PaintGrid)
 local GameConfig = require(Shared.Config.GameConfig)
+local MapManifest = require(Shared.Config.MapManifest)
 
 local MapLoader = {}
 
@@ -187,6 +188,14 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 	local defs: { Surface.SurfaceDef } = {}
 	local surfaceParts: { [string]: BasePart } = {}
 	local masked = 0
+	local function inOutOfBounds(p: Vector3): boolean
+		for _, vol in outOfBounds do
+			if MapLoader.pointInVolume(vol, p) then
+				return true
+			end
+		end
+		return false
+	end
 	for _, part in m.PaintSurfaces:GetChildren() do
 		local cf = part.CFrame
 		local def = Surface.fromBox(
@@ -226,6 +235,7 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 		local n = def.SizeU * def.SizeV
 		local mask = buffer.create(n)
 		local legal = 0
+		local oobCells = 0
 		-- A cell is legal when the space just in front of it is free of map geometry. Raycasts cannot see a part
 		-- that contains their start point, so use a precise overlap probe instead (GDD 09.5 mask validation).
 		local probeCF = CFrame.fromMatrix(
@@ -248,6 +258,9 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 						end
 					end
 				end
+				if isLegal and inOutOfBounds(Vector3.new(c.X, c.Y, c.Z) + Vector3.new(def.Normal.X, def.Normal.Y, def.Normal.Z) * 0.5) then
+					oobCells += 1 -- paint that can never be reached legally (hidden score / escape route, MAP-04)
+				end
 				if isLegal then
 					buffer.writeu8(mask, j * def.SizeU + i, 1)
 					legal += 1
@@ -258,6 +271,33 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 		end
 		if legal == 0 then
 			table.insert(warnings, "surface " .. def.SurfaceId .. " has no legal cells")
+		end
+		if oobCells > 0 then
+			table.insert(errors, string.format("surface %s has %d legal cells inside an OutOfBounds volume", def.SurfaceId, oobCells))
+		end
+		-- a climbable face must not top out into an out-of-bounds area (no mantle onto an OOB roof, MAP-04)
+		if def.Climbable and def.Normal.Y < 0.5 then
+			local topY = -math.huge
+			for j = 0, def.SizeV - 1 do
+				for i = 0, def.SizeU - 1 do
+					topY = math.max(topY, Surface.cellCenter(def, i, j).Y)
+				end
+			end
+			local bad = false
+			for j = 0, def.SizeV - 1 do
+				for i = 0, def.SizeU - 1 do
+					local c = Surface.cellCenter(def, i, j)
+					if not bad and c.Y > topY - 0.01 then
+						local over = Vector3.new(c.X, topY + 1.1, c.Z) - Vector3.new(def.Normal.X, 0, def.Normal.Z) * 1.0
+						if inOutOfBounds(over) then
+							bad = true
+						end
+					end
+				end
+			end
+			if bad then
+				table.insert(errors, "climbable surface " .. def.SurfaceId .. " tops out into an OutOfBounds volume")
+			end
 		end
 		def.Mask = mask
 		table.insert(defs, def)
@@ -335,6 +375,9 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 		if not base or not MapLoader.pointInVolume(base, cf.Position + Vector3.new(0, 1, 0)) then
 			table.insert(errors, "spawn " .. s.Name .. " is not inside its team's protected base")
 		end
+		if inOutOfBounds(cf.Position + Vector3.new(0, 1, 0)) then
+			table.insert(errors, "spawn " .. s.Name .. " is inside an OutOfBounds volume")
+		end
 		local clearance = Workspace:GetPartBoundsInBox(cf + Vector3.new(0, 3.2, 0), Vector3.new(3, 5.5, 3), overlap)
 		if #clearance > 0 then
 			table.insert(errors, "spawn " .. s.Name .. " lacks character clearance (blocked by " .. clearance[1]:GetFullName() .. ")")
@@ -369,6 +412,26 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 		end
 	end
 
+	-- The map's own manifest (GDD 09.5): declared counts must match what the loader derives. Required for
+	-- production maps; optional for code fixtures (tests set them to prove the check).
+	if grid then
+		local declared = {
+			{ "ExpectedScoringCells", grid.totalScoringArea },
+			{ "ExpectedWallCells", grid.totalWallCells },
+			{ "ExpectedPatches", #defs },
+		}
+		for _, d in declared do
+			local v = model:GetAttribute(d[1])
+			if v == nil then
+				if not isFixture then
+					table.insert(errors, "manifest attribute " .. d[1] .. " missing (derived value " .. d[2] .. ")")
+				end
+			elseif v ~= d[2] then
+				table.insert(errors, string.format("manifest %s = %s but the loader derives %d", d[1], tostring(v), d[2]))
+			end
+		end
+	end
+
 	local staging = m.Markers:FindFirstChild("StagingReturn")
 	if #errors > 0 then
 		return nil, errors
@@ -396,6 +459,72 @@ function MapLoader.load(model: Model, isFixture: boolean): (Descriptor?, { strin
 		warnings = warnings,
 	},
 		{}
+end
+
+-- Slot contract (GDD 09.2/09.3, MAP-03): the MapId names a manifest slot; footprint and base centres match it; the
+-- two team halves (split at X = 0) have the same scoring area within tolerance. Returns a list of errors.
+function MapLoader.validateSlot(desc: Descriptor): { string }
+	local errors = {}
+	local slot = MapManifest.Slots[desc.mapId]
+	if not slot then
+		table.insert(errors, "MapId " .. tostring(desc.mapId) .. " is not a manifest slot")
+		return errors
+	end
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, folder in desc.raycastInclude do
+		for _, part in folder:GetDescendants() do
+			if part:IsA("BasePart") then
+				local h = part.Size / 2
+				local cf = part.CFrame
+				for _, sx in { -1, 1 } do
+					for _, sz in { -1, 1 } do
+						local p = cf:PointToWorldSpace(Vector3.new(h.X * sx, 0, h.Z * sz))
+						minX, maxX = math.min(minX, p.X), math.max(maxX, p.X)
+						minZ, maxZ = math.min(minZ, p.Z), math.max(maxZ, p.Z)
+					end
+				end
+			end
+		end
+	end
+	local tol = MapManifest.FootprintTolerance
+	local fx, fz = maxX - minX, maxZ - minZ
+	if math.abs(fx - slot.Footprint.X) > slot.Footprint.X * tol or math.abs(fz - slot.Footprint.Z) > slot.Footprint.Z * tol then
+		table.insert(errors, string.format("footprint %.0f x %.0f differs from slot %d x %d by more than %d%%", fx, fz, slot.Footprint.X, slot.Footprint.Z, tol * 100))
+	end
+	if math.abs((minX + maxX) / 2) > MapManifest.BaseCenterTolerance or math.abs((minZ + maxZ) / 2) > MapManifest.BaseCenterTolerance then
+		table.insert(errors, "footprint is not centred on the world origin")
+	end
+	for team, sign in { [1] = -1, [2] = 1 } do
+		local vol = desc.baseVolumes[team]
+		if vol then
+			local c = vol.cframe.Position
+			if math.abs(c.X - sign * slot.BaseCenterX) > MapManifest.BaseCenterTolerance or math.abs(c.Z) > MapManifest.BaseCenterTolerance then
+				table.insert(errors, string.format("team %s base centre (%.0f, %.0f) is not near X = %d, Z = 0", if team == 1 then "A" else "B", c.X, c.Z, sign * slot.BaseCenterX))
+			end
+		end
+	end
+	local half = { 0, 0 }
+	for _, def in desc.defs do
+		if def.Scoreable then
+			for j = 0, def.SizeV - 1 do
+				for i = 0, def.SizeU - 1 do
+					if Surface.isLegal(def, j * def.SizeU + i) then
+						local c = Surface.cellCenter(def, i, j)
+						if c.X < -0.01 then
+							half[1] += 1
+						elseif c.X > 0.01 then
+							half[2] += 1
+						end
+					end
+				end
+			end
+		end
+	end
+	local larger = math.max(half[1], half[2], 1)
+	if math.abs(half[1] - half[2]) / larger > MapManifest.SideParityTolerance then
+		table.insert(errors, string.format("scoring area is not mirrored: A half %d cells, B half %d cells", half[1], half[2]))
+	end
+	return errors
 end
 
 return MapLoader

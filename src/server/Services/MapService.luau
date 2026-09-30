@@ -10,10 +10,11 @@ local Workspace = game:GetService("Workspace")
 
 local MapLoader = require(script.Parent.Parent.Map.MapLoader)
 local DevGate = require(script.Parent.Parent.DevGate)
+local MapManifest = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.MapManifest)
 
 local MapService = {}
 
-type Entry = { id: string, template: Model, isFixture: boolean }
+type Entry = { id: string, template: Model, isFixture: boolean, slot: boolean? }
 
 local diagnostics
 local arenaFolder: Folder
@@ -33,6 +34,19 @@ local function ensureFolder(parent: Instance, name: string): Folder
 end
 
 local stressTemplate: Model? = nil
+local contractTemplates: { [string]: Model } = {}
+
+-- Dev only: DevGate "ContractFixtures" = true rotates code-built fixtures for both manifest slots (FLOW-14, MAP-03).
+local function contractFixture(slotId: string): Model?
+	local dev = DevGate.devFolder()
+	if not dev then
+		return nil
+	end
+	if not contractTemplates[slotId] then
+		contractTemplates[slotId] = require((dev :: any).fixtures.ContractMap).build(slotId)
+	end
+	return contractTemplates[slotId]
+end
 
 local function buildFixture()
 	local dev = DevGate.devFolder()
@@ -76,16 +90,34 @@ end
 -- The ordered rotation. Production maps alternate; the fixture appears only in dev mode.
 function MapService.rotation(): { Entry }
 	local list: { Entry } = {}
-	local maps = ServerStorage:FindFirstChild("ColorClashMaps")
-	if maps and not DevGate.get("UseFixture", false) then
-		for _, m in maps:GetChildren() do
-			if m:IsA("Model") and m:GetAttribute("IsFixture") ~= true then
-				table.insert(list, { id = m:GetAttribute("MapId") or m.Name, template = m, isFixture = false })
+	if DevGate.enabled() and DevGate.get("ContractFixtures", false) then
+		for _, slotId in MapManifest.Order do
+			local template = contractFixture(slotId)
+			if template then
+				table.insert(list, { id = slotId, template = template, isFixture = true, slot = true })
 			end
 		end
-		table.sort(list, function(a, b)
-			return a.id < b.id
-		end)
+		return list
+	end
+	local maps = ServerStorage:FindFirstChild("ColorClashMaps")
+	if maps and not DevGate.get("UseFixture", false) then
+		-- production: one model per manifest slot, in manifest order; anything else is reported and skipped
+		local bySlot = {}
+		for _, m in maps:GetChildren() do
+			if m:IsA("Model") and m:GetAttribute("IsFixture") ~= true then
+				local id = m:GetAttribute("MapId")
+				if type(id) == "string" and MapManifest.Slots[id] and not bySlot[id] then
+					bySlot[id] = m
+				else
+					diagnostics.event("MapSkipped", { name = m.Name, reason = if MapManifest.Slots[id or ""] then "duplicate slot" else "MapId is not a manifest slot" })
+				end
+			end
+		end
+		for _, slotId in MapManifest.Order do
+			if bySlot[slotId] then
+				table.insert(list, { id = slotId, template = bySlot[slotId], isFixture = false, slot = true })
+			end
+		end
 	end
 	if #list == 0 and DevGate.enabled() then
 		buildFixture()
@@ -121,6 +153,12 @@ function MapService.loadNext(): (any?, { string })
 	local clone = entry.template:Clone()
 	clone.Parent = arenaFolder
 	local desc, errors = MapLoader.load(clone, entry.isFixture)
+	if desc and entry.slot then
+		local slotErrors = MapLoader.validateSlot(desc)
+		if #slotErrors > 0 then
+			desc, errors = nil, slotErrors
+		end
+	end
 	local ms = (os.clock() - t0) * 1000
 	diagnostics.time("map.load", ms)
 	if not desc then

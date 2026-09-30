@@ -92,6 +92,10 @@ function CameraController.swapShoulder()
 	shoulder = -shoulder
 end
 
+function CameraController.setShoulder(side: number)
+	shoulder = if side < 0 then -1 else 1
+end
+
 function CameraController.shoulder(): number
 	return shoulder
 end

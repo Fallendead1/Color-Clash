@@ -64,6 +64,8 @@ UIContract.Mandatory = {
 
 -- Supporting keys the adapter binds when present (the wireframe provides all of them; production UI should too).
 UIContract.Optional = {
+	["Settings.Status"] = "text",
+	["Scoreboard.Header"] = "text",
 	["Staging.Play"] = "button",
 	["Staging.OpenArmory"] = "button",
 	["Staging.OpenControls"] = "button",

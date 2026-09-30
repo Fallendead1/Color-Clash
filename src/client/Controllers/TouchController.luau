@@ -18,35 +18,49 @@ local MAP = {
 	["Touch.Map"] = "Map",
 }
 
-function TouchController.start(ui, input)
+local conns: { RBXScriptConnection } = {}
+
+local function bind(ui, input)
+	for _, c in conns do
+		c:Disconnect()
+	end
+	table.clear(conns)
 	for key, action in MAP do
 		local b = ui.get(key)
 		if b then
-			b.InputBegan:Connect(function(io)
+			table.insert(conns, b.InputBegan:Connect(function(io)
 				if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
 					b:SetAttribute("Pressed", true)
 					input.press(action, true)
 				end
-			end)
-			b.InputEnded:Connect(function(io)
+			end))
+			table.insert(conns, b.InputEnded:Connect(function(io)
 				if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
 					b:SetAttribute("Pressed", false)
 					input.press(action, false)
 				end
-			end)
+			end))
 		end
 	end
 	local jump = ui.get("Touch.Jump")
 	if jump then
-		jump.InputBegan:Connect(function(io)
+		table.insert(conns, jump.InputBegan:Connect(function(io)
 			if io.UserInputType == Enum.UserInputType.Touch then
 				local h = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 				if h then
 					h.Jump = true
 				end
 			end
-		end)
+		end))
 	end
+end
+
+function TouchController.start(ui, input)
+	bind(ui, input)
+	ui.onAdopted(function()
+		input.releaseAll("ui swap")
+		bind(ui, input) -- a production UI swap rebinds by key (UI-10)
+	end)
 	-- A lost touch (app backgrounded) must not leave an action held: focus loss releases everything in the input
 	-- layer; also clear the buttons' pressed state.
 	UserInputService.WindowFocusReleased:Connect(function()

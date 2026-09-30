@@ -21,6 +21,7 @@ type Record = {
 	paint: number,
 	lastUse: number, -- match-clock time of the last paint-consuming action
 	ultimate: any,
+	chosen: boolean?, -- the player picked a kit this session (a late-arriving stored profile must not override it)
 }
 
 local records: { [Player]: Record } = {}
@@ -51,6 +52,16 @@ function LoadoutService:Start()
 	for _, p in Players:GetPlayers() do
 		onJoin(p)
 	end
+	-- the stored profile arrives asynchronously: adopt its kit unless the player already chose one this session
+	if settings then
+		settings.onLoaded(function(player, profile)
+			local rec = records[player]
+			if rec and not rec.chosen and not rec.locked and Weapons.Defs[profile.loadout] and rec.selected ~= profile.loadout then
+				rec.selected = profile.loadout
+				player:SetAttribute("CCWeapon", profile.loadout)
+			end
+		end)
+	end
 	Players.PlayerAdded:Connect(onJoin)
 	Players.PlayerRemoving:Connect(function(p)
 		records[p] = nil
@@ -76,6 +87,7 @@ function LoadoutService.select(player: Player, id: any): (boolean, string?)
 		return false, "locked_in_match"
 	end
 	team.touch(player)
+	rec.chosen = true
 	if rec.selected ~= id then
 		rec.selected = id
 		player:SetAttribute("CCWeapon", id)

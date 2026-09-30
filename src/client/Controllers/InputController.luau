@@ -104,6 +104,28 @@ function InputController.setGlideToggle(enabled: boolean)
 	glideToggled = false
 end
 
+-- Preference "glideMode": "hold", "toggle" or "auto" (toggle on a touch-only device, hold otherwise; GDD 04.3).
+-- "auto" follows the device capability, not the last input, so a semantic press never flips the mode mid-glide.
+function InputController.setGlideMode(mode: string)
+	local toggle = if mode == "toggle" then true elseif mode == "hold" then false else (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
+	if toggle ~= glideToggleMode then
+		if held.Glide then
+			held.Glide = false
+			emit("Glide", false, "mode")
+		end
+		InputController.setGlideToggle(toggle)
+	end
+end
+
+function InputController.glideToggleMode(): boolean
+	return glideToggleMode
+end
+
+-- Tests: pretend the last input came from a device ("Gamepad", "Touch", "KeyboardMouse"); nil restores keyboard.
+function InputController.setDeviceForTests(device: string?)
+	lastDevice = device or "KeyboardMouse"
+end
+
 function InputController.device(): string
 	return lastDevice
 end

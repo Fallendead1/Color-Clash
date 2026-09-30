@@ -25,6 +25,8 @@ local TouchController = require(Controllers.TouchController)
 local EffectsController = require(Controllers.EffectsController)
 local WeaponController = require(Controllers.WeaponController)
 local TacticalMapController = require(Controllers.TacticalMapController)
+local SettingsController = require(Controllers.SettingsController)
+local ScoreboardController = require(Controllers.ScoreboardController)
 
 InputController.start()
 UIController.start(InputController)
@@ -59,6 +61,15 @@ WeaponController.start({
 	hud = HudController,
 })
 TacticalMapController.start({ ui = UIController, input = InputController, paint = PaintClient, remotes = remotes })
+ScoreboardController.start({ ui = UIController, input = InputController, remotes = remotes })
+SettingsController.start({
+	ui = UIController,
+	input = InputController,
+	camera = CameraController,
+	paint = PaintClient,
+	effects = EffectsController,
+	remotes = remotes,
+})
 
 PaintClient.onChange(function(kind)
 	if kind == "map" or kind == "clear" then

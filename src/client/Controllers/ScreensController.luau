@@ -409,6 +409,26 @@ function ScreensController.start(deps)
 		refreshArmory()
 	end)
 
+	-- onboarding follows the stored profile (dismissed once, stays dismissed on later visits; reopenable via Controls)
+	remotes.SettingsState.OnClientEvent:Connect(function(msg)
+		if type(msg) == "table" and type(msg.profile) == "table" and msg.profile.onboardingDismissed == true and not onboardingDismissed then
+			onboardingDismissed = true
+			refreshStaging()
+		end
+	end)
+
+	task.spawn(function()
+		while true do
+			task.wait(2)
+			local ok, ping = pcall(function()
+				return player:GetNetworkPing()
+			end)
+			if ok and type(ping) == "number" then
+				ScreensController.checkConnection(ping)
+			end
+		end
+	end)
+
 	remotes.Notice.OnClientEvent:Connect(function(msg)
 		if type(msg) ~= "table" then
 			return
@@ -420,6 +440,8 @@ function ScreensController.start(deps)
 			VacancyPause = Strings.NoticeVacancy,
 			FinalCue = Strings.FinalCue,
 			NoContest = Strings.OutcomeNoContest,
+			SaveFailed = Strings.NoticeSaveFailed,
+			PrefsUnavailable = Strings.NoticePrefsUnavailable,
 		}
 		if msg.k == "LoadingFailed" then
 			loadingFailed = true
@@ -459,6 +481,25 @@ function ScreensController.start(deps)
 	setLoading(nil)
 	refreshStaging()
 	refreshArmory()
+end
+
+-- Connection delay notice (GDD 12.1 System notices): two consecutive slow samples, at most once per 30 s, never a
+-- cheat accusation. Returns true when a notice was shown (tests feed samples directly).
+local slowSamples = 0
+local lastConnectionNotice = -math.huge
+function ScreensController.checkConnection(pingSeconds: number, now: number?): boolean
+	local t = now or os.clock()
+	if pingSeconds > 0.4 then
+		slowSamples += 1
+	else
+		slowSamples = 0
+	end
+	if slowSamples >= 2 and t - lastConnectionNotice > 30 then
+		lastConnectionNotice = t
+		ScreensController.notice(Strings.NoticeConnection)
+		return true
+	end
+	return false
 end
 
 function ScreensController.round()

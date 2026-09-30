@@ -90,6 +90,15 @@ local GameConfig = {
 		SameCellCreditCooldown = 5,
 	},
 
+	-- Preference persistence (GDD 11.6): bounded retries, debounced writes, bounded shutdown flush.
+	Persistence = {
+		ReadAttempts = 3,
+		WriteAttempts = 3,
+		RetryBackoffSeconds = 0.5, -- x attempt number
+		SaveDebounceSeconds = 4,
+		ShutdownFlushSeconds = 20,
+	},
+
 	Launch = {
 		ChannelSeconds = 1.0,
 		ChannelMaxMove = 1,
